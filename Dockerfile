@@ -5,17 +5,20 @@ FROM node:18-alpine
 # Set the working directory
 WORKDIR /app
 
+# Install NestJS CLI globally
+RUN npm install -g @nestjs/cli
+
 # Copy the package.json and package-lock.json files
 COPY package*.json ./
 
-# Install the dependencies
+# Install the dependencies (only production dependencies)
 RUN npm install --production
 
 # Copy the rest of the application code
 COPY . .
 
 # Build the application
-RUN npm run build
+RUN nest build
 
 # Expose the port the app runs on
 EXPOSE 3000
