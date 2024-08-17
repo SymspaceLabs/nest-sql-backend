@@ -3,7 +3,7 @@ name: Deploy NestJS App
 on:
   push:
     branches:
-      - main  # Trigger deployment on push to main branch
+      - development-vps  # Trigger deployment on push to main branch
 
 jobs:
   deploy:
