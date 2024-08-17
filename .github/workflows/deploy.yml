@@ -38,4 +38,4 @@ jobs:
             docker pull thilak2302/app:latest
             docker stop be_container || true
             docker rm be_container || true
-            docker run -d --name be_container -p 3000:3000 thilak2302/app:latest
+            docker run -d --name be_container -p 2511:3000 thilak2302/app:latest
