@@ -17,18 +17,27 @@ import { BlogsModule } from './blogs/blogs.module';
 import { SeederModule } from './database/seeders/seeder.module';
 import { StockModule } from './stock/stock.module';
 import { ProductImagesModule } from './product-images/product-images.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: process.env.DB_PASSWORD,
-      database: 'sympspace',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get<string>('HOST_DB'), //process.env.HOST_DB,
+        port: parseInt(configService.get<string>('HOST_DB_PORT')), //25060,
+        username: configService.get<string>('DB_UNAME'), //process.env.DB_UNAME,
+        password: configService.get<string>('DB_UPASS'), //process.env.DB_UPASS,
+        database: configService.get<string>('DB_NAME'), //process.env.DB_NAME,
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        synchronize: true,
+        options: {
+          encrypt: true,
+          trustServerCertificate: true,
+        },
+      }),
     }),
     UsersModule,
     CategoriesModule,
