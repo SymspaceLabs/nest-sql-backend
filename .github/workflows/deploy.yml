@@ -38,7 +38,7 @@ jobs:
             --build-arg DB_NAME=${{ secrets.HOST_DB_NAME }} \
             --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} \
             --build-arg GITHUB_CLIENT_ID=${{ secrets.GITHLIENT_ID }} \
-            --build-arg GITHUB_CLIENT_SECRET=${{ secrets.GITHCLIENT_SECRET }} -t thilak2302/app:latest .
+            --build-arg GITHUB_CLIENT_SECRET=${{ secrets.GITHCLIENT_SECRET }} -t thilak2302/app:latest . --push
           docker push thilak2302/app:latest 
 #            --env-file .env -t thilak2302/app:latest .
 
