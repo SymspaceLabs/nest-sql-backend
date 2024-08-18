@@ -11,6 +11,8 @@ RUN npm install -g @nestjs/cli
 # Copy the package.json and package-lock.json files
 COPY package*.json ./
 
+COPY .env /app/.env
+
 # Install the dependencies (only production dependencies)
 RUN npm install --production
 
