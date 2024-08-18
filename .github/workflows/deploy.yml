@@ -39,8 +39,8 @@ jobs:
             --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} \
             --build-arg GITHUB_CLIENT_ID=${{ secrets.GITHLIENT_ID }} \
             --build-arg GITHUB_CLIENT_SECRET=${{ secrets.GITHCLIENT_SECRET }} -t thilak2302/app:latest .
-#            --env-file .env -t thilak2302/app:latest .
           docker push thilak2302/app:latest 
+#            --env-file .env -t thilak2302/app:latest .
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v0.1.6
