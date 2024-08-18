@@ -34,7 +34,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
-          env: # Moved env here
+          env:
             FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
             GOOGLE_CLIENT_ID: ${{ secrets.GCLIENTID }}
             GOOGLE_CLIENT_SECRET: ${{ secrets.GCLIENT_SECRET }}
@@ -54,16 +54,17 @@ jobs:
             docker stop be_container || true
             docker rm be_container || true
             docker run --network=host -d --name be_container -p 2511:3000 \
-              -e GITHUB_CLIENT_ID=${{ secrets.GITHLIENT_ID }} \
-              -e GITHUB_CLIENT_SECRET=${{ secrets.GITHCLIENT_SECRET }} \
-              -e FRONTEND_URL=${{ secrets.FRONTEND_URL }} \
-              -e GOOGLE_CLIENT_ID=${{ secrets.GCLIENTID }} \
-              -e BACKEND_URL=${{ secrets.BACKEND_URL }} \
-              -e APPLE_PRIVATE_KEY=${{ secrets.APPLE_PRIV_KEY }} \
-              -e APPLE_CLIENT_ID=${{ secrets.APPLE_CLIENT_ID }} \
-              -e HOST_DB=${{ secrets.HOST_DB }} \
-              -e HOST_DB_PORT=${{ secrets.HOST_DB_PORT }} \
-              -e DB_UNAME=${{ secrets.HOST_DB_UNAME }} \
-              -e DB_UPASS=${{ secrets.HOST_DB_UPWD }} \
-              -e DB_NAME=${{ secrets.HOST_DB_NAME }} \
-              -e JWT_SECRET=${{ secrets.JWT_SECRET }} thilak2302/app:latest 
+              -e GITHUB_CLIENT_ID=$GITHUB_CLIENT_ID \
+              -e GITHUB_CLIENT_SECRET=$GITHUB_CLIENT_SECRET \
+              -e FRONTEND_URL=$FRONTEND_URL \
+              -e GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID \
+              -e BACKEND_URL=$BACKEND_URL \
+              -e APPLE_PRIVATE_KEY=$APPLE_PRIVATE_KEY \
+              -e APPLE_CLIENT_ID=$APPLE_CLIENT_ID \
+              -e HOST_DB=$HOST_DB \
+              -e HOST_DB_PORT=$HOST_DB_PORT \
+              -e DB_UNAME=$DB_UNAME \
+              -e DB_UPASS=$DB_UPASS \
+              -e DB_NAME=$DB_NAME \
+              -e JWT_SECRET=$JWT_SECRET \
+              thilak2302/app:latest
