@@ -53,7 +53,7 @@ jobs:
             docker pull thilak2302/app:latest
             docker stop be_container || true
             docker rm be_container || true
-            docker run --network=host -d --name be_container -p 2511:3000
+            docker run --network=host -d --name be_container -p 2511:3000 \
               -e GITHUB_CLIENT_ID=${{ secrets.GITHLIENT_ID }} \
               -e GITHUB_CLIENT_SECRET=${{ secrets.GITHCLIENT_SECRET }} \
               -e FRONTEND_URL=${{ secrets.FRONTEND_URL }} \
