@@ -26,15 +26,7 @@ jobs:
         run: |
           docker build -t thilak2302/app:latest .
           docker push thilak2302/app:latest
-
-      - name: Deploy to VPS
-        uses: appleboy/ssh-action@v0.1.6
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT }}
-          env:
+        env:
             FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
             GOOGLE_CLIENT_ID: ${{ secrets.GCLIENTID }}
             GOOGLE_CLIENT_SECRET: ${{ secrets.GCLIENT_SECRET }}
@@ -49,6 +41,14 @@ jobs:
             JWT_SECRET: ${{ secrets.JWT_SECRET }}
             GITHUB_CLIENT_ID: ${{ secrets.GITHLIENT_ID }}
             GITHUB_CLIENT_SECRET: ${{ secrets.GITHCLIENT_SECRET }}
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
           script: |
             docker pull thilak2302/app:latest
             docker stop be_container || true
