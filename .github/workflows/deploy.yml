@@ -26,21 +26,6 @@ jobs:
         run: |
           docker build -t thilak2302/app:latest .
           docker push thilak2302/app:latest
-        env:
-          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GCLIENTID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GCLIENT_SECRET }}
-          BACKEND_URL: ${{ secrets.BACKEND_URL }}
-          APPLE_PRIVATE_KEY: ${{ secrets.APPLE_PRIV_KEY }}
-          APPLE_CLIENT_ID: ${{ secrets.APPLE_CLIENT_ID }}
-          HOST_DB: ${{ secrets.HOST_DB }}
-          HOST_DB_PORT: ${{ secrets.HOST_DB_PORT }}
-          DB_UNAME: ${{ secrets.HOST_DB_UNAME }}
-          DB_UPASS: ${{ secrets.HOST_DB_UPWD }}
-          DB_NAME: ${{ secrets.HOST_DB_NAME }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          GITHUB_CLIENT_ID: ${{ secrets.GITHLIENT_ID }}
-          GITHUB_CLIENT_SECRET: ${{ secrets.GITHCLIENT_SECRET }}
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v0.1.6
@@ -49,6 +34,21 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
+          env: # Moved env here
+            FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+            GOOGLE_CLIENT_ID: ${{ secrets.GCLIENTID }}
+            GOOGLE_CLIENT_SECRET: ${{ secrets.GCLIENT_SECRET }}
+            BACKEND_URL: ${{ secrets.BACKEND_URL }}
+            APPLE_PRIVATE_KEY: ${{ secrets.APPLE_PRIV_KEY }}
+            APPLE_CLIENT_ID: ${{ secrets.APPLE_CLIENT_ID }}
+            HOST_DB: ${{ secrets.HOST_DB }}
+            HOST_DB_PORT: ${{ secrets.HOST_DB_PORT }}
+            DB_UNAME: ${{ secrets.HOST_DB_UNAME }}
+            DB_UPASS: ${{ secrets.HOST_DB_UPWD }}
+            DB_NAME: ${{ secrets.HOST_DB_NAME }}
+            JWT_SECRET: ${{ secrets.JWT_SECRET }}
+            GITHUB_CLIENT_ID: ${{ secrets.GITHLIENT_ID }}
+            GITHUB_CLIENT_SECRET: ${{ secrets.GITHCLIENT_SECRET }}
           script: |
             docker pull thilak2302/app:latest
             docker stop be_container || true
