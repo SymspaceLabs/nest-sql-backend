@@ -66,5 +66,4 @@ jobs:
               -e DB_UNAME=${{ secrets.HOST_DB_UNAME }} \
               -e DB_UPASS=${{ secrets.HOST_DB_UPWD }} \
               -e DB_NAME=${{ secrets.HOST_DB_NAME }} \
-              -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
-              thilak2302/app:latest 
+              -e JWT_SECRET=${{ secrets.JWT_SECRET }} thilak2302/app:latest 
