@@ -1,19 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import {InjectRepository} from "@nestjs/typeorm";
-import {Product} from "./entities/product.entity";
-import {Repository} from "typeorm";
+import { InjectRepository } from '@nestjs/typeorm';
+import { Product } from './entities/product.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ProductsService {
-
   private products = [];
 
   constructor(
-      @InjectRepository(Product) private productRepository: Repository<Product>,
-  ) {
-  }
+    @InjectRepository(Product) private productRepository: Repository<Product>,
+  ) {}
   create(createProductDto: CreateProductDto) {
     const newProduct = {
       id: Date.now(), // Using timestamp as a simple unique ID for this example
