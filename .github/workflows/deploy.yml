@@ -24,7 +24,7 @@ jobs:
 
       - name: Build and Push Docker image
         run: |
-          docker build \
+          docker buildx build \
             --build-arg GOOGLE_CLIENT_ID=${{ secrets.GCLIENTID }} \
             --build-arg GOOGLE_CLIENT_SECRET=${{ secrets.GCLIENT_SECRET }} \
             --build-arg FRONTEND_URL=${{ secrets.FRONTEND_URL }} \
