@@ -20,6 +20,7 @@ export class ProductImagesController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.productImagesService.findOne(+id);
+    // try to push
   }
 
   @Patch(':id')
