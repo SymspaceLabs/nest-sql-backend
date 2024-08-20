@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsArray,
 } from 'class-validator';
+import {Type} from "class-transformer";
 
 export class CreateProductDto {
   @IsString()
@@ -26,10 +27,15 @@ export class CreateProductDto {
   @IsString()
   @IsOptional()
   company?: string;
+  //
+  // @IsArray()
+  // @IsOptional()
+  // images?: Express.Multer.File[];
 
   @IsArray()
   @IsOptional()
-  images?: string[];
+  @Type(() => Object)
+  images?: Express.Multer.File[];
 
   @IsString()
   @IsOptional()
@@ -58,4 +64,8 @@ export class CreateProductDto {
   @IsString()
   @IsOptional()
   material?: string;
+
+  @IsString()
+  @IsOptional()
+  productFitting?: 'True to Size' | 'Runs Small' | 'Runs Big';
 }

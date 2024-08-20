@@ -25,6 +25,7 @@ export class Product {
   })
   productStatus: ProductStatus;
 
+  // @Column()
   @Column()
   name: string;
 
@@ -52,28 +53,28 @@ export class Product {
   @Column()
   productFitting: 'True to Size' | 'Runs Small' | 'Runs Big';
 
-  @Column('simple-array')
-  productSizes: string[];
+  @Column({ nullable: true })
+  productSizes: string;
 
-  @Column('simple-array')
-  productColors: string[];
+  @Column({ nullable: true }) //'simple-array')
+  productColors: string;
 
-  @Column()
+  @Column({ nullable: true })
   productMaterial: string;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: false, nullable: true })
   productDimensions: boolean;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: false, nullable: true })
   productSizechart: boolean;
 
   @Column({ nullable: true })
   productInsurance?: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   productDescription: string;
 
-  @Column({ type: 'float' })
+  @Column({ type: 'float', nullable: true })
   price: number;
 
   @Column({ type: 'float', nullable: true })
@@ -82,17 +83,19 @@ export class Product {
   @Column({ type: 'boolean', default: false })
   chargeTax: boolean;
 
-  @Column({ type: 'float' })
+  @Column({ type: 'float', default: 0.0 })
   costPerProduct: number;
 
-  @Column({ type: 'float' })
+  @Column({ type: 'float', default: 0.0 })
   profit: number;
 
-  @Column({ type: 'float' })
+  @Column({ type: 'float', default: 0.0 })
   margin: number;
 
   @OneToMany(() => Stock, (stock) => stock.product, {
     cascade: true,
   })
   stocks: Stock[];
+  @Column()
+  createdAt: Date;
 }

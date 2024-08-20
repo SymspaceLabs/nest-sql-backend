@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as Minio from 'minio';
 import * as process from 'process';
+import { Readable } from 'stream';
 
 @Injectable()
 export class MinioService {
@@ -15,7 +16,6 @@ export class MinioService {
     });
   }
   async uploadFile(file: Buffer, filename: string): Promise<string> {
-
     const bucketName = 'ecomm-development'; // Replace with your bucket
     const objectName = filename; // Or generate a unique name
 
@@ -28,20 +28,48 @@ export class MinioService {
         objectName,
         file,
       );
-      console.log(Location);
+      // console.log(Location);
       return Location.versionId;
     } catch (err) {
       console.error('Error uploading file:', err);
       throw err; // Or handle the error gracefully
     }
-    //
-    // const params = {
-    //   Bucket: process.env.DO_S3_BUCKET,
-    //   Key: filename,
-    //   Body: buffer,
-    // };
-    // const { Location } = await this.s3.upload(params).promise();
-    // return Location;
+  }
+
+  async getFile(bucketName: string, objectName: string): Promise<Buffer> {
+    try {
+      const dataStream: Readable = await this.minioClient.getObject(
+        bucketName,
+        objectName,
+      );
+
+      const chunks: Buffer[] = [];
+
+      for await (const chunk of dataStream) {
+        chunks.push(chunk);
+      }
+
+      return Buffer.concat(chunks);
+    } catch (err) {
+      throw new Error(`Error retrieving file from MinIO: ${err.message}`);
+    }
+  }
+
+  async getFileUrl(
+    bucketName: string,
+    objectName: string,
+    expiresIn: number = 24 * 60 * 60,
+  ): Promise<string> {
+    try {
+      const url = await this.minioClient.presignedGetObject(
+        bucketName,
+        objectName,
+        expiresIn,
+      );
+      return url;
+    } catch (err) {
+      throw new Error(`Error generating URL from MinIO: ${err.message}`);
+    }
   }
 
   // async uploadFileWa(buffer: Buffer, filename: string): Promise<string> {

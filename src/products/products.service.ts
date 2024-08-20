@@ -4,40 +4,81 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { Repository } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
+import { MinioService } from '../MinioModule/minio.service';
+import {ProductImage} from "../product-images/entities/product-image.entity";
 
 @Injectable()
 export class ProductsService {
   private products = [];
+  private productImages = [];
 
   constructor(
     @InjectRepository(Product) private productRepository: Repository<Product>,
+    @InjectRepository(ProductImage) private productImageRepository: Repository<ProductImage>,
+    private readonly minioService: MinioService,
   ) {}
-  create(createProductDto: CreateProductDto) {
-    const newProduct = {
-      id: Date.now(), // Using timestamp as a simple unique ID for this example
-      ...createProductDto,
-      // file
+  async create(createProductDto: CreateProductDto) {
+    let buffer: any;
+    console.log('img', createProductDto.images);
+    // let i = 0;
+    // for (buffer in createProductDto.images) {
+    // i = i + 1;
+    // console.log(i);
+    // const filename = file.originalname;
+    const timestamp = Date.now(); // Get current timestamp
+    const randomString = uuidv4(); // Generate a random string
+    const filename = `${timestamp}-${randomString}-${createProductDto.images[0].originalname}`;
+    const resultUpload = await this.minioService.uploadFile(
+      createProductDto.images[0].buffer,
+      filename,
+    );
+    const prodImageNew = {
+      imageUrl: filename,
     };
-    this.products.push(newProduct);
-    // const newQuickCount = this.quickCountEntityRepository.create({
-    //   ...quickDetails, createdAt: new Date(),
-    //   filePath: file, source: source
-    // });
+    this.productImages.push(prodImageNew);
+    // break;
+    // }
+
+    const newProductInsert = this.productRepository.create({
+      name: createProductDto.name,
+      images: this.productImages,
+      createdAt: new Date(),
+      category: 'Fashion',
+      productFitting: createProductDto.productFitting,
+    });
     // return this.quickCountEntityRepository.save(newQuickCount);
-    // this.productRepository.create(newProduct)
-    return newProduct;
+    this.productRepository.save(newProductInsert);
+    return newProductInsert;
   }
 
-  findAll() {
-    return this.products;
+  async findAll() {
+    const queryBuilder =
+      this.productRepository.createQueryBuilder('product');
+    return queryBuilder.getMany();
   }
 
-  findOne(id: number) {
-    const product = this.products.find((prod) => prod.id === id);
+  async findOne(id: string) {
+    const product = await this.productRepository.findOneById(id);
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
     return product;
+  }
+
+  async findOneProdImg(id: string) {
+    const queryBuilder =
+      this.productImageRepository.createQueryBuilder('productImage');
+    return queryBuilder
+      .where('productId= :productId', {
+        productId: id,
+      })
+      .getOne();
+    // const product = await this.productImageRepository.findOneBy({productId
+    // if (!product) {
+    //   throw new NotFoundException(`Product with ID ${id} not found`);
+    // }
+    // return product;
   }
 
   update(id: number, updateProductDto: UpdateProductDto) {
