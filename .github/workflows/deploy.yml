@@ -38,6 +38,8 @@ jobs:
             --build-arg DB_NAME=${{ secrets.HOST_DB_NAME }} \
             --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} \
             --build-arg GITHUB_CLIENT_ID=${{ secrets.GITHLIENT_ID }} \
+            --build-arg SPACES_KEY=${{ secrets.SPACES_KEY }} \
+            --build-arg SPACES_SECRET=${{ secrets.SPACES_SECRET }} \
             --build-arg GITHUB_CLIENT_SECRET=${{ secrets.GITHCLIENT_SECRET }} -t thilak2302/app:latest . --push
           docker images  # List local images to verify the tag
           # docker push thilak2302/app:latest
@@ -70,4 +72,6 @@ jobs:
               -e DB_UPASS=${{ secrets.HOST_DB_UPWD }} \
               -e DB_NAME=${{ secrets.HOST_DB_NAME }} \
               -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
+              -e SPACES_KEY=${{ secrets.SPACES_KEY }} \
+              -e SPACES_SECRET=${{ secrets.SPACES_SECRET }} \
               thilak2302/app:latest
