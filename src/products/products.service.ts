@@ -73,7 +73,7 @@ export class ProductsService {
       .where('productId= :productId', {
         productId: id,
       })
-      .getOne();
+      .getMany();
     // const product = await this.productImageRepository.findOneBy({productId
     // if (!product) {
     //   throw new NotFoundException(`Product with ID ${id} not found`);

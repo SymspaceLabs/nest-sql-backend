@@ -23,6 +23,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { MinioService } from '../MinioModule/minio.service';
+import {ProductImage} from "../product-images/entities/product-image.entity";
 
 @Controller('products')
 export class ProductsController {
@@ -80,15 +81,37 @@ export class ProductsController {
   async findOne(@Param('id') id: string) {
     const productDetail = await this.productsService.findOne(id);
     const productDetailImg = await this.productsService.findOneProdImg(id);
-    console.log(productDetail);
-    const newLinkFile = await this.minioService.getFileUrl(
-      'ecomm-development',
-      productDetailImg.imageUrl,
-    );
+    for (const img of productDetailImg) {
+      const newLinkFile = await this.minioService.getFileUrl(
+        'ecomm-development',
+        img.imageUrl,
+      );
+      img.imageUrl = newLinkFile;
+    }
+
     return {
       id: productDetail.id,
       name: productDetail.name,
-      urlFile: newLinkFile,
+      prodImages: productDetailImg,
+      productStatus: productDetail.productStatus,
+      threeDModel: productDetail.threeDModel,
+      category: productDetail.category,
+      modelSize: productDetail.modelSize,
+      productFitting: productDetail.productFitting,
+      productSizes: productDetail.productSizes,
+      productColors: productDetail.productColors,
+      productMaterial: productDetail.productMaterial,
+      productDimensions: productDetail.productDimensions,
+      productSizechart: productDetail.productSizechart,
+      productInsurance: productDetail.productInsurance,
+      productDescription: productDetail.productDescription,
+      price: productDetail.price,
+      strikethroughPrice: productDetail.strikethroughPrice,
+      chargeTax: productDetail.chargeTax,
+      costPerProduct: productDetail.costPerProduct,
+      profit: productDetail.profit,
+      margin: productDetail.margin,
+      createdAt: productDetail.createdAt,
     };
   }
 
