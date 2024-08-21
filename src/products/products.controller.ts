@@ -16,7 +16,8 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { Multer } from 'multer';
+// import { Multer } from 'multer';
+import { File } from 'multer';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -45,7 +46,7 @@ export class ProductsController {
         ],
       }),
     )
-    file: Express.Multer.File,
+    file: File,
   ) {
     console.log(file);
     createProductDto.images = [file];

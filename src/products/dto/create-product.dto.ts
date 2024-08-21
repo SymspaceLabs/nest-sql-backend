@@ -6,6 +6,7 @@ import {
   IsArray,
 } from 'class-validator';
 import {Type} from "class-transformer";
+import { File } from 'multer';
 
 export class CreateProductDto {
   @IsString()
@@ -35,7 +36,7 @@ export class CreateProductDto {
   @IsArray()
   @IsOptional()
   @Type(() => Object)
-  images?: Express.Multer.File[];
+  images?: File[];
 
   @IsString()
   @IsOptional()
