@@ -13,18 +13,17 @@ import {
   FileTypeValidator,
   MaxFileSizeValidator,
   Res,
-  ParseIntPipe,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { Express } from 'express';
 // import { Multer } from 'multer';
-import { File } from 'multer';
+// import { multer } from 'multer';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { MinioService } from '../MinioModule/minio.service';
-import {ProductImage} from "../product-images/entities/product-image.entity";
 
 @Controller('products')
 export class ProductsController {
@@ -46,7 +45,8 @@ export class ProductsController {
         ],
       }),
     )
-    file: File,
+    file: Express.Multer.File,
+    // file: File,
   ) {
     console.log(file);
     createProductDto.images = [file];

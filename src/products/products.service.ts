@@ -6,7 +6,7 @@ import { Product } from './entities/product.entity';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { MinioService } from '../MinioModule/minio.service';
-import {ProductImage} from "../product-images/entities/product-image.entity";
+import { ProductImage } from '../product-images/entities/product-image.entity';
 
 @Injectable()
 export class ProductsService {
@@ -15,7 +15,8 @@ export class ProductsService {
 
   constructor(
     @InjectRepository(Product) private productRepository: Repository<Product>,
-    @InjectRepository(ProductImage) private productImageRepository: Repository<ProductImage>,
+    @InjectRepository(ProductImage)
+    private productImageRepository: Repository<ProductImage>,
     private readonly minioService: MinioService,
   ) {}
   async create(createProductDto: CreateProductDto) {

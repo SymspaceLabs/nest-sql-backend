@@ -16,6 +16,9 @@ import { MailchimpService } from '../mailchimp/mailchimp.service';
 import * as jwt from 'jsonwebtoken';
 import * as crypto from 'crypto';
 import { Company } from 'src/companies/entities/company.entity';
+import { firstValueFrom } from 'rxjs';
+import { HttpService } from '@nestjs/axios';
+
 
 @Injectable()
 export class AuthService {
@@ -30,6 +33,7 @@ export class AuthService {
 
     private jwtService: JwtService,
     private readonly mailchimpService: MailchimpService,
+    private readonly httpService: HttpService,
   ) {}
 
   async signUp(
@@ -211,6 +215,12 @@ export class AuthService {
     await this.usersRepository.save(user);
 
     await this.mailchimpService.sendPasswordResetEmail(email, token);
+  }
+
+  async revokeGoogleToken(accessToken: string) {
+    const url = `https://oauth2.googleapis.com/revoke?token=${accessToken}`;
+    const result = await firstValueFrom(this.httpService.post(url));
+    return result.data;
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {

@@ -70,11 +70,46 @@ export class AuthController {
   @UseGuards(GoogleOauthGuard)
   async googleAuthCallback(@Req() req: any, @Res() res: Response) {
     try {
+      // check if email is exists
       const token = await this.authService.oAuthLogin(req);
-      res.redirect(`${process.env.FRONTEND_URL}/?token=${token.jwt}`);
+      res.status(200).send({ success: true, message: token.jwt });
+      // res.redirect(`${process.env.FRONTEND_URL}/?token=${token.jwt}`);
     } catch (err) {
       res.status(500).send({ success: false, message: err.message });
     }
+  }
+
+  @Get('google-signup')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth(@Req() req) {
+    // Google OAuth2 login process
+    console.log(req);
+  }
+
+  @Get('google-login')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthLogin(@Req() req) {
+    // Google OAuth2 login process
+    console.log(req);
+  }
+
+  @Get('logout')
+  async logout(@Req() req: Request, @Res() res: Response) {
+    // Revoke Google token (if necessary)
+    // if (req.user && req.user.accessToken) {
+    await this.authService.revokeGoogleToken('');
+    // }
+
+    // // Clear the session or JWT
+    // req.logout((err) => {
+    //   if (err) {
+    //     return res.status(500).json({ message: 'Failed to log out' });
+    //   }
+    //   req.session.destroy(() => {
+    //     res.clearCookie('connect.sid'); // or clear the JWT if it's stored in a cookie
+    //     return res.status(200).json({ message: 'Logged out successfully' });
+    //   });
+    // });
   }
 
   @Get('/facebook')

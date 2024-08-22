@@ -5,8 +5,9 @@ import {
   IsNotEmpty,
   IsArray,
 } from 'class-validator';
-import {Type} from "class-transformer";
-import { File } from 'multer';
+import { Type } from 'class-transformer';
+// import { File } from 'multer';
+import { Express } from 'express';
 
 export class CreateProductDto {
   @IsString()
@@ -36,7 +37,8 @@ export class CreateProductDto {
   @IsArray()
   @IsOptional()
   @Type(() => Object)
-  images?: File[];
+  images?: Express.Multer.File[];
+  // images?: File[];
 
   @IsString()
   @IsOptional()

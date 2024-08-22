@@ -13,7 +13,8 @@ import { JwtGuard } from './jwt-auth.guard';
 import { GitHubStrategy } from './github.strategy';
 import { AppleStrategy } from './apple.strategy';
 import { MailchimpModule } from '../mailchimp/mailchimp.module';
-import { UsersModule } from '../users/users.module'; // Import the UsersModule
+import { UsersModule } from '../users/users.module';
+import {HttpModule, HttpService} from "@nestjs/axios"; // Import the UsersModule
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { UsersModule } from '../users/users.module'; // Import the UsersModule
     UsersModule,
     MailchimpModule,
     TypeOrmModule.forFeature([User, Company]), // Include Company entity here
+      HttpModule,
   ],
   controllers: [AuthController],
   providers: [
