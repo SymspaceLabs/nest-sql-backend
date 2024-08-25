@@ -13,4 +13,6 @@ export class ProductImage {
     onDelete: 'CASCADE',
   })
   product: Product;
+  @Column()
+  createdAt: Date;
 }

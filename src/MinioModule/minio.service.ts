@@ -28,7 +28,7 @@ export class MinioService {
         objectName,
         file,
       );
-      // console.log(Location);
+      console.log(Location);
       return Location.versionId;
     } catch (err) {
       console.error('Error uploading file:', err);

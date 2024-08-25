@@ -12,7 +12,7 @@ import {
   ParseFilePipe,
   FileTypeValidator,
   MaxFileSizeValidator,
-  Res,
+  Res, UploadedFiles,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { Express } from 'express';
@@ -21,7 +21,11 @@ import { Express } from 'express';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import {
+  AnyFilesInterceptor,
+  FileInterceptor,
+  FilesInterceptor,
+} from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { MinioService } from '../MinioModule/minio.service';
 
@@ -34,22 +38,25 @@ export class ProductsController {
 
   // @Post()
   @Post('upload-product')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FilesInterceptor('file'))
   async create(
     @Body() createProductDto: CreateProductDto,
-    @UploadedFile(
+    @UploadedFiles(
       new ParseFilePipe({
         validators: [
-          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
+          new FileTypeValidator({
+            fileType: 'image/png|image/jpeg|model/gltf-binary',
+          }),
           new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 4 }),
         ],
+        fileIsRequired: false,
       }),
     )
-    file: Express.Multer.File,
+    file: Express.Multer.File[],
     // file: File,
   ) {
-    console.log(file);
-    createProductDto.images = [file];
+    // console.log('file upload : ', file);
+    createProductDto.images = file;
 
     return await this.productsService.create(createProductDto);
   }

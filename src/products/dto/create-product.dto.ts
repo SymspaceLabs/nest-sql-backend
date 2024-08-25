@@ -40,6 +40,10 @@ export class CreateProductDto {
   images?: Express.Multer.File[];
   // images?: File[];
 
+  @IsOptional()
+  @Type(() => Object)
+  threedmodel?: Express.Multer.File;
+
   @IsString()
   @IsOptional()
   model3D?: string;

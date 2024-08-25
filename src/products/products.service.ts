@@ -20,26 +20,45 @@ export class ProductsService {
     private readonly minioService: MinioService,
   ) {}
   async create(createProductDto: CreateProductDto) {
-    let buffer: any;
-    console.log('img', createProductDto.images);
-    // let i = 0;
-    // for (buffer in createProductDto.images) {
-    // i = i + 1;
-    // console.log(i);
-    // const filename = file.originalname;
-    const timestamp = Date.now(); // Get current timestamp
-    const randomString = uuidv4(); // Generate a random string
-    const filename = `${timestamp}-${randomString}-${createProductDto.images[0].originalname}`;
-    const resultUpload = await this.minioService.uploadFile(
-      createProductDto.images[0].buffer,
-      filename,
-    );
-    const prodImageNew = {
-      imageUrl: filename,
-    };
-    this.productImages.push(prodImageNew);
-    // break;
-    // }
+    let threedModelName = '';
+    for (const file of createProductDto.images) {
+      console.log(file);
+      const mimeType = file.mimetype;
+
+      // Check and split GLB file with images
+      if (
+        mimeType === 'model/gltf-binary' ||
+        file.originalname.endsWith('.glb')
+      ) {
+        // Process to threedmodel file type
+        const timestamp = Date.now(); // Get current timestamp
+        const randomString = uuidv4(); // Generate a random string
+        const dfilename = `${timestamp}-${randomString}-${file.originalname}`;
+
+        // Upload the 3D model file
+        threedModelName = dfilename;
+        await this.minioService.uploadFile(file.buffer, dfilename);
+      } else {
+        const timestamp = Date.now(); // Get current timestamp
+        const randomString = uuidv4(); // Generate a random string
+        const filename = `${timestamp}-${randomString}-${file.originalname}`;
+
+        // Upload the image file
+        await this.minioService.uploadFile(
+          file.buffer,
+          filename,
+        );
+
+        // Create a new image object
+        const prodImageNew = {
+          imageUrl: filename,
+          createdAt: new Date(),
+        };
+
+        // Add the new image object to the product images array
+        this.productImages.push(prodImageNew);
+      }
+    }
 
     const newProductInsert = this.productRepository.create({
       name: createProductDto.name,
@@ -47,15 +66,15 @@ export class ProductsService {
       createdAt: new Date(),
       category: 'Fashion',
       productFitting: createProductDto.productFitting,
+      threeDModel: threedModelName,
     });
     // return this.quickCountEntityRepository.save(newQuickCount);
-    this.productRepository.save(newProductInsert);
+    await this.productRepository.save(newProductInsert);
     return newProductInsert;
   }
 
   async findAll() {
-    const queryBuilder =
-      this.productRepository.createQueryBuilder('product');
+    const queryBuilder = this.productRepository.createQueryBuilder('product');
     return queryBuilder.getMany();
   }
 
