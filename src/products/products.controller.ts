@@ -15,8 +15,9 @@ import {
   Res, UploadedFiles,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { Express } from 'express';
+// import { Express } from 'express';
 // import { Multer } from 'multer';
+import { File } from 'multer';
 // import { multer } from 'multer';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -52,8 +53,8 @@ export class ProductsController {
         fileIsRequired: false,
       }),
     )
-    file: Express.Multer.File[],
-    // file: File,
+    // file: Express.Multer.File[],
+    file: File,
   ) {
     // console.log('file upload : ', file);
     createProductDto.images = file;
