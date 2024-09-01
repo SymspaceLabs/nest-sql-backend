@@ -1,33 +1,26 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  UseGuards,
-  UseInterceptors,
-  UploadedFile,
-  ParseFilePipe,
   FileTypeValidator,
+  Get,
   MaxFileSizeValidator,
-  Res, UploadedFiles,
+  Param,
+  ParseFilePipe,
+  Patch,
+  Post,
+  Res,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
 import { Response } from 'express';
 // import { Express } from 'express';
-// import { Multer } from 'multer';
-import { File } from 'multer';
+// import { File } from 'multer';
 // import { multer } from 'multer';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import {
-  AnyFilesInterceptor,
-  FileInterceptor,
-  FilesInterceptor,
-} from '@nestjs/platform-express';
-import { AuthGuard } from '@nestjs/passport';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { MinioService } from '../MinioModule/minio.service';
 
 @Controller('products')
@@ -53,8 +46,8 @@ export class ProductsController {
         fileIsRequired: false,
       }),
     )
-    // file: Express.Multer.File[],
-    file: File,
+    file: Express.Multer.File[],
+    // file: Express.Multer.File,
   ) {
     // console.log('file upload : ', file);
     createProductDto.images = file;
@@ -82,8 +75,40 @@ export class ProductsController {
   }
 
   @Get()
-  findAll() {
-    return this.productsService.findAll();
+  async findAll() {
+    const allProducts = await this.productsService.findAll();
+    const modifiedProducts = [];
+
+    for (const product of allProducts) {
+      // Retrieve images for the current product
+      const productDetailImg = await this.productsService.findOneProdImg(
+        product.id,
+      );
+
+      // Apply any custom logic to the images, if needed
+      for (const img of productDetailImg) {
+        // Example: Get a signed URL for each image
+        img.imageUrl = await this.minioService.getFileUrl(
+          'ecomm-development',
+          img.imageUrl,
+        );
+      }
+      product.threeDModel = await this.minioService.getFileUrl(
+        'ecomm-development',
+        product.threeDModel,
+      );
+
+      // Custom logic for each product
+      const modifiedProduct = {
+        ...product,
+        images: productDetailImg, // Attach the retrieved and processed images
+      };
+
+      // Add the modified product to the array
+      modifiedProducts.push(modifiedProduct);
+    }
+
+    return modifiedProducts;
   }
 
   @Get(':id')
@@ -98,12 +123,17 @@ export class ProductsController {
       img.imageUrl = newLinkFile;
     }
 
+    const newThreeDmodelUrl = await this.minioService.getFileUrl(
+      'ecomm-development',
+      productDetail.threeDModel,
+    );
+
     return {
       id: productDetail.id,
       name: productDetail.name,
       prodImages: productDetailImg,
       productStatus: productDetail.productStatus,
-      threeDModel: productDetail.threeDModel,
+      threeDModel: newThreeDmodelUrl, //productDetail.threeDModel,
       category: productDetail.category,
       modelSize: productDetail.modelSize,
       productFitting: productDetail.productFitting,
