@@ -47,7 +47,7 @@ export class ProductsController {
       }),
     )
     // file: Express.Multer.File[],
-    file: File,
+    file: File[],
     // file: Express.Multer.File,
   ) {
     // console.log('file upload : ', file);
