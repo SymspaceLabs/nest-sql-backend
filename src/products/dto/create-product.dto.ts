@@ -37,13 +37,13 @@ export class CreateProductDto {
   @IsArray()
   @IsOptional()
   @Type(() => Object)
-  images?: Express.Multer.File[];
-  // images?: File[];
+  // images?: Express.Multer.File[];
+  images?: File[];
 
   @IsOptional()
   @Type(() => Object)
-  threedmodel?: Express.Multer.File;
-  // threedmodel?: File;
+  // threedmodel?: Express.Multer.File;
+  threedmodel?: File;
 
   @IsString()
   @IsOptional()
