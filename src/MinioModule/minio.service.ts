@@ -68,7 +68,8 @@ export class MinioService {
       );
       return url;
     } catch (err) {
-      throw new Error(`Error generating URL from MinIO: ${err.message}`);
+      // throw new Error(`Error generating URL from MinIO: ${err.message}`);
+      return '';
     }
   }
 

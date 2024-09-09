@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { ProductImage } from 'src/product-images/entities/product-image.entity';
 import { Stock } from 'src/stock/entities/stock.entity';
+import { ProductVariantEntity } from '../../product-variant/entities/product-variant.entity';
 
 export enum ProductStatus {
   ACTIVE = 'Active',
@@ -98,4 +99,9 @@ export class Product {
   stocks: Stock[];
   @Column()
   createdAt: Date;
+
+  @OneToMany(() => ProductVariantEntity, (variant) => variant.product, {
+    cascade: true,
+  })
+  variants: ProductVariantEntity[];
 }

@@ -44,10 +44,7 @@ export class ProductsService {
         const filename = `${timestamp}-${randomString}-${file.originalname}`;
 
         // Upload the image file
-        await this.minioService.uploadFile(
-          file.buffer,
-          filename,
-        );
+        await this.minioService.uploadFile(file.buffer, filename);
 
         // Create a new image object
         const prodImageNew = {
@@ -74,8 +71,14 @@ export class ProductsService {
   }
 
   async findAll() {
-    const queryBuilder = this.productRepository.createQueryBuilder('product');
-    return queryBuilder.getMany();
+    return this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.variants', 'variant')
+      .leftJoinAndSelect('variant.properties', 'variantProperty')
+      .leftJoinAndSelect('variant.prices', 'price')
+      .getMany();
+    // const queryBuilder = this.productRepository.createQueryBuilder('product');
+    // return queryBuilder.getMany();
   }
 
   async findOne(id: string) {

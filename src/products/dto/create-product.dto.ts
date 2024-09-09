@@ -4,10 +4,34 @@ import {
   IsOptional,
   IsNotEmpty,
   IsArray,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 // import { File } from 'multer';
 // import { Request } from 'express';
+
+class CreateProductVariantPropertyDto {
+  @IsString()
+  key: string;
+
+  @IsString()
+  value: string;
+}
+
+class CreatePriceDto {
+  @IsString()
+  amount: string;
+}
+
+class CreateProductVariantDto {
+  @ValidateNested({ each: true })
+  @Type(() => CreateProductVariantPropertyDto)
+  properties: CreateProductVariantPropertyDto[];
+
+  @ValidateNested({ each: true })
+  @Type(() => CreatePriceDto)
+  prices: CreatePriceDto[];
+}
 
 export class CreateProductDto {
   @IsString()
@@ -37,13 +61,13 @@ export class CreateProductDto {
   @IsArray()
   @IsOptional()
   @Type(() => Object)
-  // images?: Express.Multer.File[];
-  images?: File[];
+  images?: Express.Multer.File[];
+  // images?: File[];
 
   @IsOptional()
   @Type(() => Object)
-  // threedmodel?: Express.Multer.File;
-  threedmodel?: File;
+  threedmodel?: Express.Multer.File;
+  // threedmodel?: File;
 
   @IsString()
   @IsOptional()
@@ -76,4 +100,9 @@ export class CreateProductDto {
   @IsString()
   @IsOptional()
   productFitting?: 'True to Size' | 'Runs Small' | 'Runs Big';
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateProductVariantDto)
+  variants: CreateProductVariantDto[];
 }
