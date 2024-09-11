@@ -19,8 +19,8 @@ class CreateProductVariantPropertyDto {
 }
 
 class CreatePriceDto {
-  @IsString()
-  amount: string;
+  @IsNumber()
+  amount: number;
 }
 
 class CreateProductVariantDto {
@@ -37,6 +37,11 @@ export class CreateProductDto {
   @IsString()
   @IsNotEmpty()
   name: string;
+
+
+  @IsString()
+  @IsNotEmpty()
+  variantsJson: string;
 
   @IsString()
   @IsOptional()
