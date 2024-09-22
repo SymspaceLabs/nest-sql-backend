@@ -8,6 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import User from '../users/entities/user.entity';
+import { Auth } from './entities/auth.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { SignUpDto } from './dto/signup.dto';
@@ -18,6 +19,7 @@ import * as crypto from 'crypto';
 import { Company } from 'src/companies/entities/company.entity';
 import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
+import { RedisService } from '../redis/redis.service';
 
 
 @Injectable()
@@ -27,11 +29,13 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-
+    @InjectRepository(Auth)
+    private authRepository: Repository<Auth>,
     @InjectRepository(Company)
     private readonly companiesRepository: Repository<Company>,
 
     private jwtService: JwtService,
+    private redisService: RedisService,
     private readonly mailchimpService: MailchimpService,
     private readonly httpService: HttpService,
   ) {}
@@ -130,12 +134,33 @@ export class AuthService {
 
   async googleLogin(req: any) {
     if (!req.user) {
-      return 'No user from google';
+      throw new UnauthorizedException('No user from Google');
     }
-    return {
-      message: 'User Info from Google',
-      user: req.user,
-    };
+
+    try {
+      const { user, token } = await this.validateGoogleUser(req.user);
+
+      // You might want to perform additional logic here, such as updating last login time
+
+      return {
+        message: 'Successfully authenticated with Google',
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+        },
+        token
+      };
+    } catch (error) {
+      this.logger.error(`Google authentication failed: ${error.message}`);
+      throw new UnauthorizedException('Failed to authenticate with Google');
+    }
+    // return {
+    //   message: 'User Info from Google',
+    //   user: req.user,
+    // };
   }
 
   async oAuthLogin(req: any) {
@@ -235,5 +260,51 @@ export class AuthService {
     user.resetToken = null;
     user.resetTokenExpiry = null;
     await this.usersRepository.save(user);
+  }
+  async validateGoogleUser(googleUser: any): Promise<any> {
+    let user = await this.authRepository.findOne({ where: { email: googleUser.email } });
+    if (!user) {
+      user = this.authRepository.create({
+        email: googleUser.email,
+        firstName: googleUser.given_name,
+        lastName: googleUser.family_name,
+        isVerified: true,
+        role: 'buyer',
+        password: null,
+      });
+      await this.authRepository.save(user);
+    }
+
+    const payload = { userId: user.id, email: user.email, role: user.role };
+    const token = this.jwtService.sign(payload, { 
+      secret: process.env.JWT_SECRET, 
+      expiresIn: '1h' 
+    });
+
+    // Store the token in Redis
+    await this.redisService.getClient().set(`auth:${user.id}`, token, 'EX', 3600);
+
+    await this.authRepository.update(user.id, { refreshToken: token });
+
+    return {
+      user: {
+        ...user,
+        refreshToken: token
+      },
+      token,
+    };
+  }
+
+  async logout(userId: string): Promise<void> {
+    try {
+      const redisClient = this.redisService.getClient();
+      await redisClient.del(`auth:${userId}:access`);
+      await redisClient.del(`auth:${userId}:refresh`);
+      await this.authRepository.update(userId, { refreshToken: null });
+      this.logger.log(`User logged out: ${userId}`);
+    } catch (error) {
+      this.logger.error(`Error in logout: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 }

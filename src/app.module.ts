@@ -18,11 +18,12 @@ import { SeederModule } from './database/seeders/seeder.module';
 import { StockModule } from './stock/stock.module';
 import { ProductImagesModule } from './product-images/product-images.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { RedisModule } from '@nestjs-modules/ioredis';
 
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
+      imports: [ConfigModule, AuthModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'mysql',
@@ -53,6 +54,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     SeederModule,
     StockModule,
     ProductImagesModule,
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [AppService, GoogleStrategy],

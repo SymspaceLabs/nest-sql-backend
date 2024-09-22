@@ -70,12 +70,16 @@ export class AuthController {
   @UseGuards(GoogleOauthGuard)
   async googleAuthCallback(@Req() req: any, @Res() res: Response) {
     try {
-      // check if email is exists
-      const token = await this.authService.oAuthLogin(req);
-      res.status(200).send({ success: true, message: token.jwt });
-      // res.redirect(`${process.env.FRONTEND_URL}/?token=${token.jwt}`);
+      const result = await this.authService.googleLogin(req);
+      const frontendRedirectUrl = `${process.env.FRONTEND_URL}/marketplace?user=${encodeURIComponent(JSON.stringify(result.user))}&token=${result.token}`;
+      return res.redirect(frontendRedirectUrl);
+      // // check if email is exists
+      // const token = await this.authService.oAuthLogin(req);
+      // res.status(200).send({ success: true, message: token.jwt });
+      // // res.redirect(`${process.env.FRONTEND_URL}/?token=${token.jwt}`);
     } catch (err) {
-      res.status(500).send({ success: false, message: err.message });
+      res.redirect(`${process.env.FRONTEND_URL}/auth/error?message=${encodeURIComponent(err.message)}`);
+      // res.status(500).send({ success: false, message: err.message });
     }
   }
 
@@ -94,22 +98,18 @@ export class AuthController {
   }
 
   @Get('logout')
-  async logout(@Req() req: Request, @Res() res: Response) {
-    // Revoke Google token (if necessary)
-    // if (req.user && req.user.accessToken) {
-    await this.authService.revokeGoogleToken('');
-    // }
+  async logout(@Req() req: any, @Res() res: Response) {
+    if (req.user?.accessToken) {
+      await this.authService.revokeGoogleToken(req.user.accessToken);
+    }
 
-    // // Clear the session or JWT
-    // req.logout((err) => {
-    //   if (err) {
-    //     return res.status(500).json({ message: 'Failed to log out' });
-    //   }
-    //   req.session.destroy(() => {
-    //     res.clearCookie('connect.sid'); // or clear the JWT if it's stored in a cookie
-    //     return res.status(200).json({ message: 'Logged out successfully' });
-    //   });
-    // });
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: 'Failed to log out' });
+      }
+      res.clearCookie('jwt'); // Assuming you're using a 'jwt' cookie
+      return res.status(200).json({ message: 'Logged out successfully' });
+    });
   }
 
   @Get('/facebook')
