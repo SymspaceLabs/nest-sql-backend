@@ -138,6 +138,7 @@ export class AuthService {
     }
 
     try {
+      console.log(req.user);
       const { user, token } = await this.validateGoogleUser(req.user);
 
       // You might want to perform additional logic here, such as updating last login time
@@ -244,7 +245,11 @@ export class AuthService {
 
   async revokeGoogleToken(accessToken: string) {
     const url = `https://oauth2.googleapis.com/revoke?token=${accessToken}`;
-    const result = await firstValueFrom(this.httpService.post(url));
+    const result = await firstValueFrom(this.httpService.post(url, undefined));
+    let user = await this.authRepository.findOne({ where: { refreshToken: accessToken } });
+    if (user) {
+      await this.authRepository.delete(user);
+    }
     return result.data;
   }
 
@@ -266,13 +271,26 @@ export class AuthService {
     if (!user) {
       user = this.authRepository.create({
         email: googleUser.email,
-        firstName: googleUser.given_name,
-        lastName: googleUser.family_name,
+        firstName: googleUser.email,
+        lastName: googleUser.email,
         isVerified: true,
         role: 'buyer',
         password: null,
       });
       await this.authRepository.save(user);
+    }
+
+    let userData = await this.usersRepository.findOne({ where: { email: googleUser.email } });
+    if (!userData) {
+      userData = this.usersRepository.create({
+        email: googleUser.email,
+        firstName: googleUser.email,
+        lastName: googleUser.email,
+        isVerified: true,
+        role: 'buyer',
+        password: 'buyer123',
+      });
+      await this.usersRepository.save(userData);
     }
 
     const payload = { userId: user.id, email: user.email, role: user.role };

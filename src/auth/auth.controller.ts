@@ -99,17 +99,21 @@ export class AuthController {
 
   @Get('logout')
   async logout(@Req() req: any, @Res() res: Response) {
+    console.log(req.user);
     if (req.user?.accessToken) {
       await this.authService.revokeGoogleToken(req.user.accessToken);
     }
 
-    req.logout((err) => {
-      if (err) {
-        return res.status(500).json({ message: 'Failed to log out' });
-      }
-      res.clearCookie('jwt'); // Assuming you're using a 'jwt' cookie
-      return res.status(200).json({ message: 'Logged out successfully' });
-    });
+    const frontendRedirectUrl = `${process.env.FRONTEND_URL}`;
+    return res.redirect(frontendRedirectUrl);
+
+    // req.logout((err) => {
+    //   if (err) {
+    //     return res.status(500).json({ message: 'Failed to log out' });
+    //   }
+    //   res.clearCookie('jwt'); // Assuming you're using a 'jwt' cookie
+    //   return res.status(200).json({ message: 'Logged out successfully' });
+    // });
   }
 
   @Get('/facebook')
