@@ -16,7 +16,7 @@ import { LoginDto } from './dto/login.dto';
 import { SignUpDto } from './dto/signup.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { GoogleOauthGuard } from './google-oauth.guard';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { UsersService } from 'src/users/users.service';
 import { MailchimpService } from 'src/mailchimp/mailchimp.service';
 import { JwtService } from '@nestjs/jwt';
@@ -69,14 +69,13 @@ export class AuthController {
   @Get('/callback/google')
   @UseGuards(GoogleOauthGuard)
   async googleAuthCallback(@Req() req: any, @Res() res: Response) {
-    try {
-      const result = await this.authService.googleLogin(req);
+    try { 
+      console.log("req2", req.user);
+      console.log("req3", req.user.accessToken);
+      const result = await this.authService.validateGoogleUser(req.user); 
+      console.log("result", result);
       const frontendRedirectUrl = `${process.env.FRONTEND_URL}/marketplace?user=${encodeURIComponent(JSON.stringify(result.user))}&token=${result.token}`;
-      return res.redirect(frontendRedirectUrl);
-      // // check if email is exists
-      // const token = await this.authService.oAuthLogin(req);
-      // res.status(200).send({ success: true, message: token.jwt });
-      // // res.redirect(`${process.env.FRONTEND_URL}/?token=${token.jwt}`);
+      return res.redirect(frontendRedirectUrl); 
     } catch (err) {
       res.redirect(`${process.env.FRONTEND_URL}/auth/error?message=${encodeURIComponent(err.message)}`);
       // res.status(500).send({ success: false, message: err.message });
@@ -92,29 +91,36 @@ export class AuthController {
 
   @Get('google-login')
   @UseGuards(AuthGuard('google'))
-  async googleAuthLogin(@Req() req) {
+  async googleAuthLogin(@Req() req) {     
     // Google OAuth2 login process
     console.log(req);
   }
 
-  @Get('logout')
-  async logout(@Req() req: any, @Res() res: Response) {
-    console.log(req.user);
-    if (req.user?.accessToken) {
-      await this.authService.revokeGoogleToken(req.user.accessToken);
-    }
-
-    const frontendRedirectUrl = `${process.env.FRONTEND_URL}`;
-    return res.redirect(frontendRedirectUrl);
-
-    // req.logout((err) => {
-    //   if (err) {
-    //     return res.status(500).json({ message: 'Failed to log out' });
-    //   }
-    //   res.clearCookie('jwt'); // Assuming you're using a 'jwt' cookie
-    //   return res.status(200).json({ message: 'Logged out successfully' });
-    // });
+  @Get('logout') 
+  async logout(@Req() req: Request, @Res() res: Response) {
+    // console.log("logout", req);
+    res.clearCookie('auth_token', { path: '/', httpOnly: true, sameSite: 'lax' });
+    res.status(200).json({ message: 'Logged out successfully' });
   }
+  
+  // @Get('logout')
+  // async logout(@Req() req: any, @Res() res: Response) {
+  //   console.log(req.user);
+  //   if (req.user?.accessToken) {
+  //     await this.authService.revokeGoogleToken(req.user.accessToken);
+  //   }
+
+  //   const frontendRedirectUrl = `${process.env.FRONTEND_URL}`;
+  //   return res.redirect(frontendRedirectUrl);
+
+  //   // req.logout((err) => {
+  //   //   if (err) {
+  //   //     return res.status(500).json({ message: 'Failed to log out' });
+  //   //   }
+  //   //   res.clearCookie('jwt'); // Assuming you're using a 'jwt' cookie
+  //   //   return res.status(200).json({ message: 'Logged out successfully' });
+  //   // });
+  // }
 
   @Get('/facebook')
   @UseGuards(AuthGuard('facebook'))

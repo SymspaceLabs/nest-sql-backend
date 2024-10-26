@@ -118,7 +118,12 @@ export class AuthService {
     const accessToken = this.jwtService.sign(
       { userId: user.id, email: user.email },
       { secret: process.env.JWT_SECRET, expiresIn: '1h' },
-    );
+    ); 
+
+    // Store the token in Redis
+    await this.redisService.getClient().set(`auth:${user.id}`, accessToken, 'EX', 3600);
+
+    await this.authRepository.update(user.id, { refreshToken: accessToken });
 
     return {
       accessToken,
@@ -138,9 +143,10 @@ export class AuthService {
     }
 
     try {
-      console.log(req.user);
+      console.log("googlereq", req.user);
       const { user, token } = await this.validateGoogleUser(req.user);
 
+      console.log("googleuser", user);
       // You might want to perform additional logic here, such as updating last login time
 
       return {
@@ -266,13 +272,25 @@ export class AuthService {
     user.resetTokenExpiry = null;
     await this.usersRepository.save(user);
   }
-  async validateGoogleUser(googleUser: any): Promise<any> {
-    let user = await this.authRepository.findOne({ where: { email: googleUser.email } });
+  async validateGoogleUser(googleUser: any): Promise<any> { 
+    console.log('g', googleUser);
+    let user = await this.authRepository.findOne({ where: { email: googleUser.user.email } });
     if (!user) {
       user = this.authRepository.create({
-        email: googleUser.email,
-        firstName: googleUser.email,
-        lastName: googleUser.email,
+        email: googleUser.user.email,
+        firstName: googleUser.user.firstName,
+        lastName: googleUser.user.lastName,
+        isVerified: true,
+        role: 'buyer',
+        password: null,
+      });
+      await this.authRepository.save(user);
+
+    } else {
+      await this.authRepository.update(user.id, {
+        email: googleUser.user.email,
+        firstName: googleUser.user.firstName,
+        lastName: googleUser.user.lastName,
         isVerified: true,
         role: 'buyer',
         password: null,
@@ -280,15 +298,23 @@ export class AuthService {
       await this.authRepository.save(user);
     }
 
-    let userData = await this.usersRepository.findOne({ where: { email: googleUser.email } });
+    let userData = await this.usersRepository.findOne({ where: { email: googleUser.user.email } });
     if (!userData) {
       userData = this.usersRepository.create({
         email: googleUser.email,
-        firstName: googleUser.email,
-        lastName: googleUser.email,
+        firstName: googleUser.user.firstName,
+        lastName: googleUser.user.lastName,
         isVerified: true,
         role: 'buyer',
         password: 'buyer123',
+      });
+      await this.usersRepository.save(userData);
+    } else {
+      await this.usersRepository.update(userData.id, {
+        email: googleUser.user.email,
+        firstName: googleUser.user.firstName,
+        lastName: googleUser.user.lastName,
+        isVerified: true,
       });
       await this.usersRepository.save(userData);
     }
@@ -304,6 +330,7 @@ export class AuthService {
 
     await this.authRepository.update(user.id, { refreshToken: token });
 
+    console.log("reslocal", user);
     return {
       user: {
         ...user,
