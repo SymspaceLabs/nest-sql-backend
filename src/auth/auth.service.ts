@@ -105,14 +105,14 @@ export class AuthService {
       where: { email },
     });
 
-    if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
+    if (!user) {       
+      throw new UnauthorizedException('Invalid email');
     }
 
     const isPasswordMatched = await bcrypt.compare(password, user.password);
 
     if (!isPasswordMatched) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException('Invalid password');
     }
 
     const accessToken = this.jwtService.sign(
@@ -301,7 +301,7 @@ export class AuthService {
     let userData = await this.usersRepository.findOne({ where: { email: googleUser.user.email } });
     if (!userData) {
       userData = this.usersRepository.create({
-        email: googleUser.email,
+        email: googleUser.user.email,
         firstName: googleUser.user.firstName,
         lastName: googleUser.user.lastName,
         isVerified: true,

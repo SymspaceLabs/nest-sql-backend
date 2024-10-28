@@ -77,6 +77,7 @@ export class AuthController {
       const frontendRedirectUrl = `${process.env.FRONTEND_URL}/marketplace?user=${encodeURIComponent(JSON.stringify(result.user))}&token=${result.token}`;
       return res.redirect(frontendRedirectUrl); 
     } catch (err) {
+      console.log(err);
       res.redirect(`${process.env.FRONTEND_URL}/auth/error?message=${encodeURIComponent(err.message)}`);
       // res.status(500).send({ success: false, message: err.message });
     }
