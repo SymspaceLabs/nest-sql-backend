@@ -40,6 +40,16 @@ export class AuthController {
     }
   }
 
+  @Post('signup-seller')
+  async signUpSeller(@Body() signUpDto: SignUpDto, @Res() res: Response) {
+    const result = await this.authService.signUpSeller(signUpDto);
+    if (result.token) {
+      return res.status(HttpStatus.CREATED).json(result);
+    } else {
+      return res.status(HttpStatus.CONFLICT).json(result);
+    }
+  }
+
   @Get('verify-email')
   async verifyEmail(@Query('token') token: string, @Res() res) {
     const { role } = this.jwtService.verify(token);

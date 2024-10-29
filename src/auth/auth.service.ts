@@ -40,6 +40,64 @@ export class AuthService {
     private readonly httpService: HttpService,
   ) {}
 
+  async signUpSeller(
+    signUpDto: SignUpDto,
+  ): Promise<{ message: string; token?: string }> {
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      role = 'seller',
+      businessName,
+      website,
+    } = signUpDto;
+
+    const existingUser = await this.usersRepository.findOne({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return { message: 'Email already exists. Please use a different email.' };
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = this.usersRepository.create({
+      firstName,
+      lastName,
+      email,
+      password: hashedPassword,
+      role,
+    });
+
+    await this.usersRepository.save(user);
+
+    if (role === 'seller') {
+      const company = this.companiesRepository.create({
+        userId: user.id, // Assuming you have a userId field in your companies table
+        businessName,
+        website,
+      });
+      await this.companiesRepository.save(company);
+    }
+
+    const token = this.jwtService.sign(
+      { userId: user.id, email: user.email, role: user.role },
+      { secret: process.env.JWT_SECRET, expiresIn: '1h' },
+    );
+
+    const verificationUrl = `${process.env.BACKEND_URL}/auth/verify-email?token=${token}`;
+
+    await this.mailchimpService.sendVerificationEmail(email, verificationUrl);
+
+    return {
+      message:
+        'Registration successful. Please check your email to verify your account.',
+      token,
+    };
+  }
+
   async signUp(
     signUpDto: SignUpDto,
   ): Promise<{ message: string; token?: string }> {
