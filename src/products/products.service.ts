@@ -125,6 +125,27 @@ export class ProductsService {
     // return newProductInsert;
   }
 
+  async findNewArrival() {
+    return this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.variants', 'variant')
+      .leftJoinAndSelect('variant.properties', 'variantProperty')
+      .leftJoinAndSelect('variant.prices', 'price')
+      .orderBy('product.createdAt', 'DESC')
+      .limit(4)
+      .getMany();
+    // const queryBuilder = this.productRepository.createQueryBuilder('product');
+    // return queryBuilder.getMany();
+  }
+
+  async findProductBySlug(slug: string): Promise<Product> {    
+    const product = await this.productRepository.findOneBy({ slug });
+    if (!product) {
+      throw new NotFoundException(`Product with slug ${slug} not found`);
+    }
+    return product;
+  }
+
   async findAll() {
     return this.productRepository
       .createQueryBuilder('product')

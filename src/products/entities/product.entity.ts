@@ -30,6 +30,9 @@ export class Product {
   @Column()
   name: string;
 
+  @Column()
+  slug: string;
+
   @OneToMany(() => ProductImage, (productImages) => productImages.product, {
     cascade: true,
   })

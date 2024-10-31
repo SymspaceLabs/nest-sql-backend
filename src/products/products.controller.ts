@@ -112,6 +112,91 @@ export class ProductsController {
     return modifiedProducts;
   }
 
+  @Get('new-arrival')
+  async findNewArrival() {
+    const newArrivalProducts = await this.productsService.findNewArrival();
+    const modifiedProducts = [];
+
+    for (const product of newArrivalProducts) {
+      // Retrieve images for the current product
+      const productDetailImg = await this.productsService.findOneProdImg(
+        product.id,
+      );
+
+      let thumbnailImg='';
+
+      // Apply any custom logic to the images, if needed
+      for (const img of productDetailImg) {
+        // Example: Get a signed URL for each image
+        img.imageUrl = await this.minioService.getFileUrl(
+          'ecomm-development',
+          img.imageUrl,
+        );
+        thumbnailImg = img.imageUrl;
+      }
+      product.threeDModel = await this.minioService.getFileUrl(
+        'ecomm-development',
+        product.threeDModel,
+      );
+
+      // Custom logic for each product
+      const modifiedProduct = {
+        ...product,
+        thumbnailImg:thumbnailImg,
+        images: productDetailImg, // Attach the retrieved and processed images
+      };
+
+      // Add the modified product to the array
+      modifiedProducts.push(modifiedProduct);
+    }
+
+    return modifiedProducts; 
+  }
+
+  @Get(':slug')
+  async getProductBySlug(@Param('slug') slug: string) {    
+    const productDetail = await this.productsService.findProductBySlug(slug);
+    const productDetailImg = await this.productsService.findOneProdImg(productDetail.id);
+    for (const img of productDetailImg) {
+      const newLinkFile = await this.minioService.getFileUrl(
+        'ecomm-development',
+        img.imageUrl,
+      );
+      img.imageUrl = newLinkFile;
+    }
+
+    const newThreeDmodelUrl = await this.minioService.getFileUrl(
+      'ecomm-development',
+      productDetail.threeDModel,
+    );
+
+    return {
+      id: productDetail.id,
+      name: productDetail.name,
+      prodImages: productDetailImg,
+      productStatus: productDetail.productStatus,
+      threeDModel: newThreeDmodelUrl, //productDetail.threeDModel,
+      category: productDetail.category,
+      modelSize: productDetail.modelSize,
+      productFitting: productDetail.productFitting,
+      productSizes: productDetail.productSizes,
+      productColors: productDetail.productColors,
+      productMaterial: productDetail.productMaterial,
+      productDimensions: productDetail.productDimensions,
+      productSizechart: productDetail.productSizechart,
+      productInsurance: productDetail.productInsurance,
+      productDescription: productDetail.productDescription,
+      price: productDetail.price,
+      strikethroughPrice: productDetail.strikethroughPrice,
+      chargeTax: productDetail.chargeTax,
+      costPerProduct: productDetail.costPerProduct,
+      profit: productDetail.profit,
+      margin: productDetail.margin,
+      createdAt: productDetail.createdAt,
+      slug: productDetail.slug,
+    };
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const productDetail = await this.productsService.findOne(id);
