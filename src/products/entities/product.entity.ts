@@ -75,6 +75,9 @@ export class Product {
   @Column({ nullable: true })
   productInsurance?: string;
 
+  @Column({ nullable: true })
+  productBrand?: string;
+
   @Column({ type: 'text', nullable: true })
   productDescription: string;
 

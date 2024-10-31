@@ -182,6 +182,7 @@ export class ProductsController {
       productSizes: productDetail.productSizes,
       productColors: productDetail.productColors,
       productMaterial: productDetail.productMaterial,
+      brand: productDetail.productBrand,
       productDimensions: productDetail.productDimensions,
       productSizechart: productDetail.productSizechart,
       productInsurance: productDetail.productInsurance,
