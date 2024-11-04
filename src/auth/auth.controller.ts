@@ -93,6 +93,24 @@ export class AuthController {
     }
   }
 
+  @Post('/callback/google')
+  @UseGuards(GoogleOauthGuard)
+  async googleAuthCallbackPost(@Req() req: any, @Res() res: Response) {
+    try { 
+      console.log("req2", req.user);
+      console.log("req3", req.user.accessToken);
+
+      const result = await this.authService.validateGoogleUser(req.user); 
+      console.log("result", result);
+
+      const frontendRedirectUrl = `${process.env.FRONTEND_URL}/marketplace?user=${encodeURIComponent(JSON.stringify(result.user))}&token=${result.token}`;
+      return res.redirect(frontendRedirectUrl); 
+    } catch (err) {
+      console.log(err);
+      res.redirect(`${process.env.FRONTEND_URL}/auth/error?message=${encodeURIComponent(err.message)}`);
+    }
+  }
+
   @Get('google-signup')
   @UseGuards(AuthGuard('google'))
   async googleAuth(@Req() req) {
