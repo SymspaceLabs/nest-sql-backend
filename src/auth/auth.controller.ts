@@ -10,6 +10,7 @@ import {
   Query,
   BadRequestException,
   HttpCode,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -76,22 +77,32 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  @Get('/callback/google')
-  @UseGuards(GoogleOauthGuard)
-  async googleAuthCallback(@Req() req: any, @Res() res: Response) {
-    try { 
-      console.log("req2", req.user);
-      console.log("req3", req.user.accessToken);
-      const result = await this.authService.validateGoogleUser(req.user); 
-      console.log("result", result);
-      const frontendRedirectUrl = `${process.env.FRONTEND_URL}/marketplace?user=${encodeURIComponent(JSON.stringify(result.user))}&token=${result.token}`;
-      return res.redirect(frontendRedirectUrl); 
-    } catch (err) {
-      console.log(err);
-      res.redirect(`${process.env.FRONTEND_URL}/auth/error?message=${encodeURIComponent(err.message)}`);
-      // res.status(500).send({ success: false, message: err.message });
+  @Post('login/google')
+  @HttpCode(HttpStatus.OK)
+  async loginWithGoogle(@Body('idToken') idToken: string) {
+    try {
+      return await this.authService.loginWithGoogle(idToken);
+    } catch (error) {
+      throw new UnauthorizedException('Google authentication failed');
     }
   }
+
+  // @Get('/callback/google')
+  // @UseGuards(GoogleOauthGuard)
+  // async googleAuthCallback(@Req() req: any, @Res() res: Response) {
+  //   try { 
+  //     console.log("req2", req.user);
+  //     console.log("req3", req.user.accessToken);
+  //     const result = await this.authService.validateGoogleUser(req.user); 
+  //     console.log("result", result);
+  //     const frontendRedirectUrl = `${process.env.FRONTEND_URL}/marketplace?user=${encodeURIComponent(JSON.stringify(result.user))}&token=${result.token}`;
+  //     return res.redirect(frontendRedirectUrl); 
+  //   } catch (err) {
+  //     console.log(err);
+  //     res.redirect(`${process.env.FRONTEND_URL}/auth/error?message=${encodeURIComponent(err.message)}`);
+  //     // res.status(500).send({ success: false, message: err.message });
+  //   }
+  // }
 
   @Get('google-signup')
   @UseGuards(AuthGuard('google'))

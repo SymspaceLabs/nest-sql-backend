@@ -20,11 +20,12 @@ import { Company } from 'src/companies/entities/company.entity';
 import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { RedisService } from '../redis/redis.service';
-
+import { OAuth2Client } from 'google-auth-library';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+  private client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
   constructor(
     @InjectRepository(User)
@@ -195,6 +196,66 @@ export class AuthService {
     };
   }
 
+  async verifyGoogleToken(idToken: string) {
+    const ticket = await this.client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    
+    if (!payload) {
+      throw new UnauthorizedException('Invalid Google token');
+    }
+
+    return {
+      email: payload.email,
+      firstName: payload.given_name,
+      lastName: payload.family_name,
+      picture: payload.picture,
+    };
+  }
+
+  async loginWithGoogle(idToken: string) {
+    const googleUser = await this.verifyGoogleToken(idToken);
+
+    const { email } = googleUser;
+
+    const user = await this.usersRepository.findOne({
+      where: { email },
+    });
+
+    if (!user) {       
+      throw new UnauthorizedException('Invalid email');
+    }
+
+    const accessToken = this.jwtService.sign(
+      { userId: user.id, email: user.email },
+      { secret: process.env.JWT_SECRET, expiresIn: '1h' },
+    ); 
+
+    // Store the token in Redis
+    await this.redisService.getClient().set(`auth:${user.id}`, accessToken, 'EX', 3600);
+
+    await this.authRepository.update(user.id, { refreshToken: accessToken });
+
+    return {
+      accessToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      },
+    };
+    
+    // return {
+    //   message: 'Login successful',
+    //   user: googleUser,
+    //   token,
+    // };
+  }
+
   async googleLogin(req: any) {
     if (!req.user) {
       throw new UnauthorizedException('No user from Google');
@@ -205,7 +266,6 @@ export class AuthService {
       const { user, token } = await this.validateGoogleUser(req.user);
 
       console.log("googleuser", user);
-      // You might want to perform additional logic here, such as updating last login time
 
       return {
         message: 'Successfully authenticated with Google',
