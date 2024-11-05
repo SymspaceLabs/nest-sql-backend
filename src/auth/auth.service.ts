@@ -228,12 +228,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email');
     }
 
-    // const isPasswordMatched = await bcrypt.compare(password, user.password);
-
-    // if (!isPasswordMatched) {
-    //   throw new UnauthorizedException('Invalid password');
-    // }
-
     const accessToken = this.jwtService.sign(
       { userId: user.id, email: user.email },
       { secret: process.env.JWT_SECRET, expiresIn: '1h' },
@@ -255,12 +249,6 @@ export class AuthService {
       },
     };
     
-    // Here you can add further processing, like checking if the user exists in your database, 
-    // creating a new user if necessary, and generating your own JWT token.
-    
-    // Example:
-    // const token = this.generateJwtToken(googleUser); // Assume this method exists in authService
-    
     // return {
     //   message: 'Login successful',
     //   user: googleUser,
@@ -278,7 +266,6 @@ export class AuthService {
       const { user, token } = await this.validateGoogleUser(req.user);
 
       console.log("googleuser", user);
-      // You might want to perform additional logic here, such as updating last login time
 
       return {
         message: 'Successfully authenticated with Google',
