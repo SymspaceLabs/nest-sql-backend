@@ -6,8 +6,8 @@ import {
   Post,
   Delete,
   UseGuards,
-  ParseIntPipe,
   Patch,
+  Req,
 } from '@nestjs/common';
 import User from './entities/user.entity';
 import { UsersService } from './users.service';
@@ -15,6 +15,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { RequestChangeEmailDto } from './dto/request-change-email.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { ChangeEmailDto } from './dto/change-email.dto';
 
 @Controller('users')
 export class UsersController {
@@ -61,5 +62,12 @@ export class UsersController {
   ): Promise<{ message: string }> {
     await this.userService.verifyOtp(id, verifyOtpDto);
     return { message: 'Email updated successfully' };
+  }
+
+  @Patch('change-email')
+  @UseGuards(AuthGuard('jwt'))
+  async changeEmail(@Req() req, @Body() changeEmailDto: ChangeEmailDto) {
+    const userId = req.user.id; // Get the user ID from the authenticated user
+    return this.userService.changeEmail(userId, changeEmailDto);
   }
 }

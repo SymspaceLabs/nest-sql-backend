@@ -15,7 +15,7 @@ import { GitHubStrategy } from './github.strategy';
 import { AppleStrategy } from './apple.strategy';
 import { MailchimpModule } from '../mailchimp/mailchimp.module';
 import { UsersModule } from '../users/users.module';
-import {HttpModule, HttpService} from "@nestjs/axios"; // Import the UsersModule
+import { HttpModule, HttpService } from '@nestjs/axios'; // Import the UsersModule
 import { RedisModule } from '../redis/redis.module';
 import { RedisService } from 'src/redis/redis.service';
 
@@ -38,8 +38,8 @@ import { RedisService } from 'src/redis/redis.service';
     AuthModule,
     MailchimpModule,
     TypeOrmModule.forFeature([User, Company, Auth]), // Include Company entity here
-      HttpModule,
-      RedisModule,
+    HttpModule,
+    RedisModule,
   ],
   controllers: [AuthController],
   providers: [

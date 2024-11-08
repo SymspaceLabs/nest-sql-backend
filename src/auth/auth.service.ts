@@ -54,6 +54,21 @@ export class AuthService {
       website,
     } = signUpDto;
 
+    // Check for missing required fields
+    const missingFields = [];
+    if (!firstName) missingFields.push('firstName');
+    if (!lastName) missingFields.push('lastName');
+    if (!email) missingFields.push('email');
+    if (!password) missingFields.push('password');
+    if (!businessName) missingFields.push('businessName');
+    if (!website) missingFields.push('website');
+
+    if (missingFields.length > 0) {
+      return {
+        message: `Missing required field(s): ${missingFields.join(', ')}.`,
+      };
+    }
+
     const existingUser = await this.usersRepository.findOne({
       where: { email },
     });
@@ -76,7 +91,7 @@ export class AuthService {
 
     if (role === 'seller') {
       const company = this.companiesRepository.create({
-        userId: user.id, // Assuming you have a userId field in your companies table
+        userId: user.id,
         businessName,
         website,
       });
@@ -164,7 +179,7 @@ export class AuthService {
       where: { email },
     });
 
-    if (!user) {       
+    if (!user) {
       throw new UnauthorizedException('Invalid email');
     }
 
@@ -177,10 +192,12 @@ export class AuthService {
     const accessToken = this.jwtService.sign(
       { userId: user.id, email: user.email },
       { secret: process.env.JWT_SECRET, expiresIn: '1h' },
-    ); 
+    );
 
     // Store the token in Redis
-    await this.redisService.getClient().set(`auth:${user.id}`, accessToken, 'EX', 3600);
+    await this.redisService
+      .getClient()
+      .set(`auth:${user.id}`, accessToken, 'EX', 3600);
 
     await this.authRepository.update(user.id, { refreshToken: accessToken });
 
@@ -202,7 +219,7 @@ export class AuthService {
       audience: process.env.GOOGLE_CLIENT_ID,
     });
     const payload = ticket.getPayload();
-    
+
     if (!payload) {
       throw new UnauthorizedException('Invalid Google token');
     }
@@ -224,17 +241,19 @@ export class AuthService {
       where: { email },
     });
 
-    if (!user) {       
+    if (!user) {
       throw new UnauthorizedException('Invalid email');
     }
 
     const accessToken = this.jwtService.sign(
       { userId: user.id, email: user.email },
       { secret: process.env.JWT_SECRET, expiresIn: '1h' },
-    ); 
+    );
 
     // Store the token in Redis
-    await this.redisService.getClient().set(`auth:${user.id}`, accessToken, 'EX', 3600);
+    await this.redisService
+      .getClient()
+      .set(`auth:${user.id}`, accessToken, 'EX', 3600);
 
     await this.authRepository.update(user.id, { refreshToken: accessToken });
 
@@ -248,7 +267,7 @@ export class AuthService {
         role: user.role,
       },
     };
-    
+
     // return {
     //   message: 'Login successful',
     //   user: googleUser,
@@ -262,10 +281,10 @@ export class AuthService {
     }
 
     try {
-      console.log("googlereq", req.user);
+      console.log('googlereq', req.user);
       const { user, token } = await this.validateGoogleUser(req.user);
 
-      console.log("googleuser", user);
+      console.log('googleuser', user);
 
       return {
         message: 'Successfully authenticated with Google',
@@ -276,7 +295,7 @@ export class AuthService {
           lastName: user.lastName,
           role: user.role,
         },
-        token
+        token,
       };
     } catch (error) {
       this.logger.error(`Google authentication failed: ${error.message}`);
@@ -370,7 +389,9 @@ export class AuthService {
   async revokeGoogleToken(accessToken: string) {
     const url = `https://oauth2.googleapis.com/revoke?token=${accessToken}`;
     const result = await firstValueFrom(this.httpService.post(url, undefined));
-    let user = await this.authRepository.findOne({ where: { refreshToken: accessToken } });
+    const user = await this.authRepository.findOne({
+      where: { refreshToken: accessToken },
+    });
     if (user) {
       await this.authRepository.delete(user);
     }
@@ -390,9 +411,11 @@ export class AuthService {
     user.resetTokenExpiry = null;
     await this.usersRepository.save(user);
   }
-  async validateGoogleUser(googleUser: any): Promise<any> { 
+  async validateGoogleUser(googleUser: any): Promise<any> {
     console.log('g', googleUser);
-    let user = await this.authRepository.findOne({ where: { email: googleUser.user.email } });
+    let user = await this.authRepository.findOne({
+      where: { email: googleUser.user.email },
+    });
     if (!user) {
       user = this.authRepository.create({
         email: googleUser.user.email,
@@ -403,7 +426,6 @@ export class AuthService {
         password: null,
       });
       await this.authRepository.save(user);
-
     } else {
       await this.authRepository.update(user.id, {
         email: googleUser.user.email,
@@ -416,7 +438,9 @@ export class AuthService {
       await this.authRepository.save(user);
     }
 
-    let userData = await this.usersRepository.findOne({ where: { email: googleUser.user.email } });
+    let userData = await this.usersRepository.findOne({
+      where: { email: googleUser.user.email },
+    });
     if (!userData) {
       userData = this.usersRepository.create({
         email: googleUser.user.email,
@@ -438,21 +462,23 @@ export class AuthService {
     }
 
     const payload = { userId: user.id, email: user.email, role: user.role };
-    const token = this.jwtService.sign(payload, { 
-      secret: process.env.JWT_SECRET, 
-      expiresIn: '1h' 
+    const token = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: '1h',
     });
 
     // Store the token in Redis
-    await this.redisService.getClient().set(`auth:${user.id}`, token, 'EX', 3600);
+    await this.redisService
+      .getClient()
+      .set(`auth:${user.id}`, token, 'EX', 3600);
 
     await this.authRepository.update(user.id, { refreshToken: token });
 
-    console.log("reslocal", user);
+    console.log('reslocal', user);
     return {
       user: {
         ...user,
-        refreshToken: token
+        refreshToken: token,
       },
       token,
     };
