@@ -15,8 +15,8 @@ export class Stock {
   @Column({ type: 'text', nullable: true })
   notes?: string;
 
-  @ManyToOne(() => Product, (product) => product.stocks, {
-    onDelete: 'CASCADE',
-  })
-  product: Product;
+  // @ManyToOne(() => Product, (product) => product.stocks, {
+  //   onDelete: 'CASCADE',
+  // })
+  // product: Product;
 }

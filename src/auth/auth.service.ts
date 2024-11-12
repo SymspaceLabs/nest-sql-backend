@@ -149,7 +149,7 @@ export class AuthService {
 
     if (role === 'seller') {
       const company = this.companiesRepository.create({
-        userId: user.id, // Assuming you have a userId field in your companies table
+        userId: user.id,
         businessName,
         website,
       });
@@ -213,37 +213,26 @@ export class AuthService {
     };
   }
 
-  async verifyGoogleToken(idToken: string) {
-    const ticket = await this.client.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-    const payload = ticket.getPayload();
-
-    if (!payload) {
-      throw new UnauthorizedException('Invalid Google token');
-    }
-
-    return {
-      email: payload.email,
-      firstName: payload.given_name,
-      lastName: payload.family_name,
-      picture: payload.picture,
-    };
-  }
-
   async loginWithGoogle(idToken: string) {
-    const googleUser = await this.verifyGoogleToken(idToken);
-
+    const googleUser = await this.parseGoogleIdToken(idToken);
+     
     const { email } = googleUser;
 
-    const user = await this.usersRepository.findOne({
+    let user = await this.usersRepository.findOne({
       where: { email },
     });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid email');
-    }
+      user = this.usersRepository.create({
+          email: googleUser.email,
+          firstName: googleUser.firstName,
+          lastName: googleUser.lastName,
+          isVerified: true,
+          role: 'buyer',
+          password: null,
+      });
+      await this.authRepository.save(user);
+  }
 
     const accessToken = this.jwtService.sign(
       { userId: user.id, email: user.email },
@@ -267,72 +256,33 @@ export class AuthService {
         role: user.role,
       },
     };
-
-    // return {
-    //   message: 'Login successful',
-    //   user: googleUser,
-    //   token,
-    // };
   }
 
-  async googleLogin(req: any) {
-    if (!req.user) {
-      throw new UnauthorizedException('No user from Google');
-    }
-
+  async parseGoogleIdToken(idToken: string) {
     try {
-      console.log('googlereq', req.user);
-      const { user, token } = await this.validateGoogleUser(req.user);
+        // Decode the token to get user info without verification
+        const decodedToken = jwt.decode(idToken);
 
-      console.log('googleuser', user);
+        if (!decodedToken) {
+            throw new Error('Invalid token');
+        }
 
-      return {
-        message: 'Successfully authenticated with Google',
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role,
-        },
-        token,
-      };
+        // Extract user details
+        const { sub, email, email_verified, name, picture, given_name, family_name } = decodedToken as any;
+
+        return {
+          userId: sub,
+          email,
+          emailVerified: email_verified,
+          name,
+          firstName: given_name,
+          lastName: family_name,
+          picture,
+        };
     } catch (error) {
-      this.logger.error(`Google authentication failed: ${error.message}`);
-      throw new UnauthorizedException('Failed to authenticate with Google');
+        throw new Error('Failed to parse Google ID token');
     }
-    // return {
-    //   message: 'User Info from Google',
-    //   user: req.user,
-    // };
-  }
-
-  async oAuthLogin(req: any) {
-    if (!req.user) {
-      throw new Error('User not found!!!');
-    }
-
-    const payload = {
-      email: req.user.email,
-      name: req.user.name,
-    };
-
-    const jwt = await this.jwtService.sign(payload);
-
-    return { jwt };
-  }
-
-  async generateVerificationToken(email: string): Promise<string> {
-    const payload = { email };
-    return this.jwtService.sign(payload, {
-      secret: process.env.JWT_SECRET,
-      expiresIn: '1h',
-    });
-  }
-
-  async verifyToken(token: string): Promise<any> {
-    return this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
-  }
+  };
 
   async verifyEmail(token: string): Promise<boolean> {
     try {
@@ -411,11 +361,12 @@ export class AuthService {
     user.resetTokenExpiry = null;
     await this.usersRepository.save(user);
   }
+
   async validateGoogleUser(googleUser: any): Promise<any> {
-    console.log('g', googleUser);
     let user = await this.authRepository.findOne({
       where: { email: googleUser.user.email },
     });
+
     if (!user) {
       user = this.authRepository.create({
         email: googleUser.user.email,

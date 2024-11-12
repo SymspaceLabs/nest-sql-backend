@@ -6,9 +6,9 @@ export class PriceEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column('decimal', { precision: 10, scale: 2 })
-  amount: number;
+  // @Column('decimal', { precision: 10, scale: 2 })
+  // amount: number;
 
-  @ManyToOne(() => ProductVariantEntity, (variant) => variant.prices)
-  variant: ProductVariantEntity;
+  // @ManyToOne(() => ProductVariantEntity, (variant) => variant.prices)
+  // variant: ProductVariantEntity;
 }

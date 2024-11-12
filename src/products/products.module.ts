@@ -8,11 +8,13 @@ import { ProductImage } from '../product-images/entities/product-image.entity';
 import { ProductVariantEntity } from '../product-variant/entities/product-variant.entity';
 import { ProductVariantPropertyEntity } from '../product-variant-property/entities/product-variant-property.entity';
 import { PriceEntity } from '../price/entities/price.entity';
+import { Company } from 'src/companies/entities/company.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Product,
+      Company,
       ProductImage,
       ProductVariantEntity,
       ProductVariantPropertyEntity,

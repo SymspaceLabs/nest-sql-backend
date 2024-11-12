@@ -4,8 +4,10 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  OneToMany
 } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
+import { Product } from 'src/products/entities/product.entity';
 
 @Entity('companies')
 export class Company {
@@ -24,4 +26,8 @@ export class Company {
 
   @Column()
   userId: string;
+
+  // One Company has many Products
+  @OneToMany(() => Product, (product) => product.company)
+  products: Product[];
 }

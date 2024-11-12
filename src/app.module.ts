@@ -19,19 +19,21 @@ import { StockModule } from './stock/stock.module';
 import { ProductImagesModule } from './product-images/product-images.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RedisModule } from '@nestjs-modules/ioredis';
+import { MinioService } from './minio/minio.service';
+import { UploadController } from './upload/upload.controller';
 
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule, AuthModule],
+      imports: [ConfigModule.forRoot({ isGlobal: true }), AuthModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'mysql',
-        host: configService.get<string>('HOST_DB'), //process.env.HOST_DB,
-        port: parseInt(configService.get<string>('HOST_DB_PORT')), //25060,
-        username: configService.get<string>('DB_UNAME'), //process.env.DB_UNAME,
-        password: configService.get<string>('DB_UPASS'), //process.env.DB_UPASS,
-        database: configService.get<string>('DB_NAME'), //process.env.DB_NAME,
+        host: configService.get<string>('HOST_DB'),
+        port: parseInt(configService.get<string>('HOST_DB_PORT')),
+        username: configService.get<string>('DB_UNAME'),
+        password: configService.get<string>('DB_UPASS'),
+        database: configService.get<string>('DB_NAME'), 
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: true,
         options: {
@@ -56,7 +58,7 @@ import { RedisModule } from '@nestjs-modules/ioredis';
     ProductImagesModule,
     RedisModule,
   ],
-  controllers: [AppController],
-  providers: [AppService, GoogleStrategy],
+  controllers: [AppController, UploadController],
+  providers: [AppService, GoogleStrategy, MinioService],
 })
 export class AppModule {}

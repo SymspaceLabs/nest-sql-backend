@@ -38,11 +38,6 @@ export class CreateProductDto {
   @IsNotEmpty()
   name: string;
 
-
-  @IsString()
-  @IsNotEmpty()
-  variantsJson: string;
-
   @IsString()
   @IsOptional()
   description?: string;
@@ -58,56 +53,54 @@ export class CreateProductDto {
   @IsString()
   @IsOptional()
   company?: string;
-  //
+
   // @IsArray()
   // @IsOptional()
-  // images?: Express.Multer.File[];
+  // @IsString({ each: true })
+  // images?: string[];
 
-  @IsArray()
-  @IsOptional()
-  @Type(() => Object)
-  images?: Express.Multer.File[];
-  // images?: File[];
+  // @IsString()
+  // @IsNotEmpty()
+  // variantsJson: string;
 
-  @IsOptional()
-  @Type(() => Object)
-  threedmodel?: Express.Multer.File;
-  // threedmodel?: File;
+  // @IsOptional()
+  // @Type(() => Object)
+  // threedmodel?: Express.Multer.File;
 
-  @IsString()
-  @IsOptional()
-  model3D?: string;
+  // @IsString()
+  // @IsOptional()
+  // model3D?: string;
 
-  @IsArray()
-  @IsOptional()
-  size?: string[];
+  // @IsArray()
+  // @IsOptional()
+  // size?: string[];
 
-  @IsString()
-  @IsOptional()
-  sizeFit?: 'Runs small' | 'True to size' | 'Runs big';
+  // @IsString()
+  // @IsOptional()
+  // sizeFit?: 'Runs small' | 'True to size' | 'Runs big';
 
-  @IsArray()
-  @IsOptional()
-  color?: string[];
+  // @IsArray()
+  // @IsOptional()
+  // color?: string[];
 
-  @IsNumber()
-  @IsOptional()
-  quantity?: number;
+  // @IsNumber()
+  // @IsOptional()
+  // quantity?: number;
 
-  @IsString()
-  @IsOptional()
-  type?: 'dynamic' | 'static';
+  // @IsString()
+  // @IsOptional()
+  // type?: 'dynamic' | 'static';
 
-  @IsString()
-  @IsOptional()
-  material?: string;
+  // @IsString()
+  // @IsOptional()
+  // material?: string;
 
-  @IsString()
-  @IsOptional()
-  productFitting?: 'True to Size' | 'Runs Small' | 'Runs Big';
+  // @IsString()
+  // @IsOptional()
+  // productFitting?: 'True to Size' | 'Runs Small' | 'Runs Big';
 
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreateProductVariantDto)
-  variants: CreateProductVariantDto[];
+  // @IsArray()
+  // @ValidateNested({ each: true })
+  // @Type(() => CreateProductVariantDto)
+  // variants: CreateProductVariantDto[];
 }

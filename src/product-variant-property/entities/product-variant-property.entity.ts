@@ -12,6 +12,6 @@ export class ProductVariantPropertyEntity {
   @Column()
   value: string;
 
-  @ManyToOne(() => ProductVariantEntity, (variant) => variant.properties)
-  variant: ProductVariantEntity;
+  // @ManyToOne(() => ProductVariantEntity, (variant) => variant.properties)
+  // variant: ProductVariantEntity;
 }

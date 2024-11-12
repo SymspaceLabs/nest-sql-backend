@@ -8,16 +8,16 @@ export class ProductVariantEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Product, (product) => product.variants)
-  product: Product;
+  // @ManyToOne(() => Product, (product) => product.variants)
+  // product: Product;
 
-  @OneToMany(
-    () => ProductVariantPropertyEntity,
-    (variantProperty) => variantProperty.variant,
-    { cascade: true },
-  )
-  properties: ProductVariantPropertyEntity[];
+  // @OneToMany(
+  //   () => ProductVariantPropertyEntity,
+  //   (variantProperty) => variantProperty.variant,
+  //   { cascade: true },
+  // )
+  // properties: ProductVariantPropertyEntity[];
 
-  @OneToMany(() => PriceEntity, (price) => price.variant, { cascade: true })
-  prices: PriceEntity[];
+  // @OneToMany(() => PriceEntity, (price) => price.variant, { cascade: true })
+  // prices: PriceEntity[];
 }
