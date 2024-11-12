@@ -62,7 +62,6 @@ export class AuthController {
       } else {
         redirectUrl = `${process.env.FRONTEND_URL}/marketplace`;
       }
-
       return res.redirect(redirectUrl);
     } catch (error) {
       return res.redirect(
