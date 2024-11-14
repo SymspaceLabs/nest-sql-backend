@@ -54,10 +54,10 @@ export class CreateProductDto {
   @IsOptional()
   company?: string;
 
-  // @IsArray()
-  // @IsOptional()
-  // @IsString({ each: true })
-  // images?: string[];
+  @IsArray()
+  @IsOptional()
+  @IsString({ each: true })
+  images?: string[];
 
   // @IsString()
   // @IsNotEmpty()

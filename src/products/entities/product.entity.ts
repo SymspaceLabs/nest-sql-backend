@@ -29,7 +29,6 @@ export class Product {
   @Column()
   category: string;
 
-  // Foreign key column for Company
   @ManyToOne(() => Company, (company) => company.products, {
     onDelete: 'CASCADE', // If a company is deleted, all related products will also be deleted
   })
@@ -38,7 +37,12 @@ export class Product {
   @Column()
   slug: string;
 
+  @OneToMany(() => ProductImage, (productImage) => productImage.product, {
+    cascade: true,
+  })
+  images: ProductImage[];
 
+  
   // @Column({
   //   type: 'enum',
   //   enum: ProductStatus,
@@ -46,10 +50,7 @@ export class Product {
   // })
   // productStatus: ProductStatus;
 
-  // @OneToMany(() => ProductImage, (productImages) => productImages.product, {
-  //   cascade: true,
-  // })
-  // images: ProductImage[];
+
 
   // @Column({ nullable: true })
   // threeDModel?: string;

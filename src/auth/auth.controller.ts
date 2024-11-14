@@ -79,26 +79,14 @@ export class AuthController {
   @Post('login/google')
   @HttpCode(HttpStatus.OK)
   async loginWithGoogle(@Body('idToken') idToken: string) {
+    return await this.authService.loginWithGoogle(idToken);
     try {
-      return await this.authService.loginWithGoogle(idToken);
+        
     } catch (error) {
       throw new UnauthorizedException('Google authentication failed');
     }
   }
 
-  @Get('google-signup')
-  @UseGuards(AuthGuard('google'))
-  async googleAuth(@Req() req) {
-    // Google OAuth2 login process
-    console.log(req);
-  }
-
-  @Get('google-login')
-  @UseGuards(AuthGuard('google'))
-  async googleAuthLogin(@Req() req) {     
-    // Google OAuth2 login process
-    console.log(req);
-  }
 
   @Get('logout') 
   async logout(@Req() req: Request, @Res() res: Response) {
@@ -189,4 +177,19 @@ export class AuthController {
   ) {
     return this.mailChimpService.sendEmail(email, verificationUrl);
   }
+
+  
+  // @Get('google-signup')
+  // @UseGuards(AuthGuard('google'))
+  // async googleAuth(@Req() req) {
+  //   // Google OAuth2 login process
+  //   console.log(req);
+  // }
+
+  // @Get('google-login')
+  // @UseGuards(AuthGuard('google'))
+  // async googleAuthLogin(@Req() req) {     
+  //   // Google OAuth2 login process
+  //   console.log(req);
+  // }
 }
