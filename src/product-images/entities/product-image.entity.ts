@@ -7,13 +7,14 @@ export class ProductImage {
   id: string;
 
   @Column()
-  imageUrl: string;
+  url: string;
 
-  // @ManyToOne(() => Product, (product) => product.images, {
-  //   onDelete: 'CASCADE',
-  // })
+  @Column({ nullable: true })
+  altText: string;
 
+  @ManyToOne(() => Product, (product) => product.images, {
+    onDelete: 'CASCADE',
+  })
   product: Product;
-  @Column()
-  createdAt: Date;
+
 }

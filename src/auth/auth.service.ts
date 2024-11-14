@@ -214,25 +214,30 @@ export class AuthService {
   }
 
   async loginWithGoogle(idToken: string) {
-    const googleUser = await this.parseGoogleIdToken(idToken);
-     
+    const googleUser = await this.parseJWT(idToken);
+
     const { email } = googleUser;
+
+
 
     let user = await this.usersRepository.findOne({
       where: { email },
     });
 
+
+
     if (!user) {
       user = this.usersRepository.create({
           email: googleUser.email,
-          firstName: googleUser.firstName,
-          lastName: googleUser.lastName,
+          firstName: googleUser.firstName || '',
+          lastName: googleUser.lastName || '',
           isVerified: true,
           role: 'buyer',
-          password: null,
+          password: '',
       });
-      await this.authRepository.save(user);
-  }
+
+      await this.usersRepository.save(user);
+    }
 
     const accessToken = this.jwtService.sign(
       { userId: user.id, email: user.email },
@@ -258,31 +263,35 @@ export class AuthService {
     };
   }
 
-  async parseGoogleIdToken(idToken: string) {
-    try {
-        // Decode the token to get user info without verification
-        const decodedToken = jwt.decode(idToken);
+  async parseJWT(idToken: string) {
+      try {
+          const ticket = await this.client.verifyIdToken({
+              idToken,
+              audience: process.env.GOOGLE_CLIENT_ID,
+          });
 
-        if (!decodedToken) {
-            throw new Error('Invalid token');
-        }
+          const payload = ticket.getPayload();
 
-        // Extract user details
-        const { sub, email, email_verified, name, picture, given_name, family_name } = decodedToken as any;
+          if (!payload) {
+              throw new Error('Invalid token payload');
+          }
 
-        return {
-          userId: sub,
-          email,
-          emailVerified: email_verified,
-          name,
-          firstName: given_name,
-          lastName: family_name,
-          picture,
-        };
-    } catch (error) {
-        throw new Error('Failed to parse Google ID token');
-    }
-  };
+          const { sub, email, email_verified, name, picture, given_name, family_name } = payload;
+
+          return {
+              userId: sub,
+              email,
+              emailVerified: email_verified,
+              name,
+              firstName: given_name,
+              lastName: family_name,
+              picture,
+          };
+      } catch (error) {
+          throw new Error('Failed to parse Google ID token: ' + error.message);
+      }
+  }
+
 
   async verifyEmail(token: string): Promise<boolean> {
     try {

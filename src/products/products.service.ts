@@ -33,43 +33,53 @@ export class ProductsService {
     // private readonly minioService: MinioService,
   ) {}
 
-    // Create product method
     async create(createProductDto: CreateProductDto): Promise<Product> {
-      const { company, name, ...productData } = createProductDto;
+      const { images, company, name, ...productData } = createProductDto;
+    
+      if (!Array.isArray(images)) {
+        throw new TypeError('images must be an array');
+      }
     
       // Check if company exists by company name or identifier
       if (!company) {
         throw new NotFoundException('Company not provided');
       }
     
-      // Fetch the company object from the repository (by name or id)
       const companyEntity = await this.companiesRepository.findOne({
-        where: { id: company },  // Or use the id if you have it in the DTO
+        where: { id: company },
       });
     
       if (!companyEntity) {
         throw new NotFoundException(`Company with name ${company} not found`);
       }
     
-      // Generate slug dynamically: company-name-product-name
       const slug = `${companyEntity.businessName.toLowerCase().replace(/\s+/g, '-')}-${name.toLowerCase().replace(/\s+/g, '-')}`;
     
-      // Create new product with the generated slug and the company entity
       const product = this.productRepository.create({
         ...productData,
         name,
-        company: companyEntity,  // Use the full company entity here
-        slug, // Add slug field
+        company: companyEntity,
+        slug,
       });
+    
+      // Process images only if they are present
+      if (images && images.length) {
+        product.images = images.map((imageUrl) => {
+          const productImage = new ProductImage();
+          productImage.url = imageUrl;
+          return productImage;
+        });
+      }
     
       return await this.productRepository.save(product);
     }
+  
     
 
     // New method for fetching all products
     async findAll(): Promise<Product[]> {
       return await this.productRepository.find({
-        relations: ['company'], // Eager-load the company data if needed
+        relations: ['company','images'],
       });
     }
 
@@ -77,7 +87,7 @@ export class ProductsService {
     async findBySlug(slug: string): Promise<Product> {
       const product = await this.productRepository.findOne({
         where: { slug },
-        relations: ['company'],  // Include the company data in the query
+        relations: ['company','images'],  // Include the company data in the query
       });
 
       if (!product) {
