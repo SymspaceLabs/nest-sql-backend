@@ -79,9 +79,8 @@ export class AuthController {
   @Post('login/google')
   @HttpCode(HttpStatus.OK)
   async loginWithGoogle(@Body('idToken') idToken: string) {
-    return await this.authService.loginWithGoogle(idToken);
     try {
-        
+      return await this.authService.loginWithGoogle(idToken);
     } catch (error) {
       throw new UnauthorizedException('Google authentication failed');
     }
