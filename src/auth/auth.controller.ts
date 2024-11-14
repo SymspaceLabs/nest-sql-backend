@@ -86,7 +86,6 @@ export class AuthController {
     }
   }
 
-
   @Get('logout') 
   async logout(@Req() req: Request, @Res() res: Response) {
     res.clearCookie('auth_token', { path: '/', httpOnly: true, sameSite: 'lax' });
