@@ -21,6 +21,7 @@ import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { RedisService } from '../redis/redis.service';
 import { OAuth2Client } from 'google-auth-library';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -34,7 +35,8 @@ export class AuthService {
     private authRepository: Repository<Auth>,
     @InjectRepository(Company)
     private readonly companiesRepository: Repository<Company>,
-
+    
+    private configService: ConfigService,
     private jwtService: JwtService,
     private redisService: RedisService,
     private readonly mailchimpService: MailchimpService,
@@ -214,17 +216,14 @@ export class AuthService {
   }
 
   async loginWithGoogle(idToken: string) {
+
     const googleUser = await this.parseJWT(idToken);
 
     const { email } = googleUser;
 
-
-
     let user = await this.usersRepository.findOne({
       where: { email },
     });
-
-
 
     if (!user) {
       user = this.usersRepository.create({
@@ -263,35 +262,25 @@ export class AuthService {
     };
   }
 
-  async parseJWT(idToken: string) {
-      try {
-          const ticket = await this.client.verifyIdToken({
-              idToken,
-              audience: process.env.GOOGLE_CLIENT_ID,
-          });
+  private async parseJWT(idToken: string): Promise<any> {
+    try {
+      const decodedHeader: any = jwt.decode(idToken, { complete: true });
+      const payload = decodedHeader.payload;
+      const { sub, email, email_verified, name, picture, given_name, family_name } = payload;
 
-          const payload = ticket.getPayload();
-
-          if (!payload) {
-              throw new Error('Invalid token payload');
-          }
-
-          const { sub, email, email_verified, name, picture, given_name, family_name } = payload;
-
-          return {
-              userId: sub,
-              email,
-              emailVerified: email_verified,
-              name,
-              firstName: given_name,
-              lastName: family_name,
-              picture,
-          };
-      } catch (error) {
-          throw new Error('Failed to parse Google ID token: ' + error.message);
+      return {
+        userId: sub,
+        email,
+        emailVerified: email_verified,
+        name,
+        firstName: given_name,
+        lastName: family_name,
+        picture,
       }
+    } catch (error) {
+      throw new Error('Invalid ID token');
+    }
   }
-
 
   async verifyEmail(token: string): Promise<boolean> {
     try {
