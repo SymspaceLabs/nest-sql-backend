@@ -5,6 +5,7 @@ import {
   HttpException,
   HttpStatus,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -23,6 +24,7 @@ import { HttpService } from '@nestjs/axios';
 import { RedisService } from '../redis/redis.service';
 import { OAuth2Client } from 'google-auth-library';
 import { ConfigService } from '@nestjs/config';
+import * as validator from 'validator'; // For robust email validation
 
 @Injectable()
 export class AuthService {
@@ -62,6 +64,8 @@ export class AuthService {
     }
   }
   
+
+  
   async signUpSeller(
     signUpDto: SignUpDto,
   ): Promise<{ message: string; token?: string }> {
@@ -82,12 +86,17 @@ export class AuthService {
       );
     }
   
-    const { password } = signUpDto;
+    const { password, email } = signUpDto;
+  
+    // Validate email format
+    if (!validator.isEmail(email)) {
+      throw new HttpException('Invalid email address.', 402); // Custom 402 error
+    }
   
     // Validate password format
-    this.validatePasswordFormat(password)
+    this.validatePasswordFormat(password);
   
-    const { firstName, lastName, email, role = 'seller', businessName, website } =
+    const { firstName, lastName, role = 'seller', businessName, website } =
       signUpDto;
   
     const existingUser = await this.usersRepository.findOne({
@@ -134,7 +143,7 @@ export class AuthService {
       token,
     };
   }
-    
+  
   async signUp(
     signUpDto: SignUpDto,
   ): Promise<{ message: string; token?: string }> {
@@ -148,12 +157,17 @@ export class AuthService {
       );
     }
   
-    const { password } = signUpDto;
+    const { password, email } = signUpDto;
+  
+    // Validate email format
+    if (!validator.isEmail(email)) {
+      throw new HttpException('Invalid email address.', 402); // Custom 402 error
+    }
   
     // Validate password format
     this.validatePasswordFormat(password);
   
-    const { firstName, lastName, email, role = 'buyer', businessName, website } =
+    const { firstName, lastName, role = 'buyer', businessName, website } =
       signUpDto;
   
     const existingUser = await this.usersRepository.findOne({
@@ -200,6 +214,7 @@ export class AuthService {
       token,
     };
   }
+  
     
   async login(loginDto: LoginDto): Promise<{ accessToken: string; user: any }> {
     const { email, password } = loginDto;
