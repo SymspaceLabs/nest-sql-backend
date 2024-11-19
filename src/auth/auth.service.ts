@@ -4,6 +4,7 @@ import {
   Logger,
   HttpException,
   HttpStatus,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -43,44 +44,62 @@ export class AuthService {
     private readonly httpService: HttpService,
   ) {}
 
+  private validateFields(
+    fields: Record<string, any>,
+    requiredFields: string[],
+  ): string[] {
+    const missingFields = requiredFields.filter((field) => !fields[field]);
+    return missingFields;
+  }
+
+  private validatePasswordFormat(password: string): void {
+    const passwordRegex =
+      /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#+])[A-Za-z\d@$!%*?&#+]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      throw new ForbiddenException(
+        'Password must be at least 8 characters long and include an uppercase letter, a number, and a special character.',
+      );
+    }
+  }
+  
   async signUpSeller(
     signUpDto: SignUpDto,
   ): Promise<{ message: string; token?: string }> {
-    const {
-      firstName,
-      lastName,
-      email,
-      password,
-      role = 'seller',
-      businessName,
-      website,
-    } = signUpDto;
-
-    // Check for missing required fields
-    const missingFields = [];
-    if (!firstName) missingFields.push('firstName');
-    if (!lastName) missingFields.push('lastName');
-    if (!email) missingFields.push('email');
-    if (!password) missingFields.push('password');
-    if (!businessName) missingFields.push('businessName');
-    if (!website) missingFields.push('website');
-
+    const requiredFields = [
+      'firstName',
+      'lastName',
+      'email',
+      'password',
+      'businessName',
+      'website',
+    ];
+  
+    const missingFields = this.validateFields(signUpDto, requiredFields);
+  
     if (missingFields.length > 0) {
-      return {
-        message: `Missing required field(s): ${missingFields.join(', ')}.`,
-      };
+      throw new UnauthorizedException(
+        `Missing required field(s): ${missingFields.join(', ')}.`,
+      );
     }
-
+  
+    const { password } = signUpDto;
+  
+    // Validate password format
+    this.validatePasswordFormat(password)
+  
+    const { firstName, lastName, email, role = 'seller', businessName, website } =
+      signUpDto;
+  
     const existingUser = await this.usersRepository.findOne({
       where: { email },
     });
-
+  
     if (existingUser) {
       return { message: 'Email already exists. Please use a different email.' };
     }
-
+  
     const hashedPassword = await bcrypt.hash(password, 10);
-
+  
     const user = this.usersRepository.create({
       firstName,
       lastName,
@@ -88,9 +107,9 @@ export class AuthService {
       password: hashedPassword,
       role,
     });
-
+  
     await this.usersRepository.save(user);
-
+  
     if (role === 'seller') {
       const company = this.companiesRepository.create({
         userId: user.id,
@@ -99,46 +118,54 @@ export class AuthService {
       });
       await this.companiesRepository.save(company);
     }
-
+  
     const token = this.jwtService.sign(
       { userId: user.id, email: user.email, role: user.role },
       { secret: process.env.JWT_SECRET, expiresIn: '1h' },
     );
-
+  
     const verificationUrl = `${process.env.BACKEND_URL}/auth/verify-email?token=${token}`;
-
+  
     await this.mailchimpService.sendVerificationEmail(email, verificationUrl);
-
+  
     return {
       message:
         'Registration successful. Please check your email to verify your account.',
       token,
     };
   }
-
+    
   async signUp(
     signUpDto: SignUpDto,
   ): Promise<{ message: string; token?: string }> {
-    const {
-      firstName,
-      lastName,
-      email,
-      password,
-      role = 'buyer',
-      businessName,
-      website,
-    } = signUpDto;
-
+    const requiredFields = ['firstName', 'lastName', 'email', 'password'];
+  
+    const missingFields = this.validateFields(signUpDto, requiredFields);
+  
+    if (missingFields.length > 0) {
+      throw new UnauthorizedException(
+        `Missing required field(s): ${missingFields.join(', ')}.`,
+      );
+    }
+  
+    const { password } = signUpDto;
+  
+    // Validate password format
+    this.validatePasswordFormat(password);
+  
+    const { firstName, lastName, email, role = 'buyer', businessName, website } =
+      signUpDto;
+  
     const existingUser = await this.usersRepository.findOne({
       where: { email },
     });
-
+  
     if (existingUser) {
       return { message: 'Email already exists. Please use a different email.' };
     }
-
+  
     const hashedPassword = await bcrypt.hash(password, 10);
-
+  
     const user = this.usersRepository.create({
       firstName,
       lastName,
@@ -146,9 +173,9 @@ export class AuthService {
       password: hashedPassword,
       role,
     });
-
+  
     await this.usersRepository.save(user);
-
+  
     if (role === 'seller') {
       const company = this.companiesRepository.create({
         userId: user.id,
@@ -157,23 +184,23 @@ export class AuthService {
       });
       await this.companiesRepository.save(company);
     }
-
+  
     const token = this.jwtService.sign(
       { userId: user.id, email: user.email, role: user.role },
       { secret: process.env.JWT_SECRET, expiresIn: '1h' },
     );
-
+  
     const verificationUrl = `${process.env.BACKEND_URL}/auth/verify-email?token=${token}`;
-
+  
     await this.mailchimpService.sendVerificationEmail(email, verificationUrl);
-
+  
     return {
       message:
         'Registration successful. Please check your email to verify your account.',
       token,
     };
   }
-
+    
   async login(loginDto: LoginDto): Promise<{ accessToken: string; user: any }> {
     const { email, password } = loginDto;
 
