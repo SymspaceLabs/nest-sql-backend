@@ -132,7 +132,6 @@ export class AuthController {
   @UseGuards(AuthGuard('apple'))
   appleAuthRedirect(@Req() req, @Res() res: Response) {
     const { user, accessToken } = req.user;
-    // const accessToken = user.accessToken;
 
     const frontendRedirectUrl = `${process.env.FRONTEND_URL}/auth/callback?user=${encodeURIComponent(
       JSON.stringify(user),
@@ -175,18 +174,4 @@ export class AuthController {
     return this.mailChimpService.sendEmail(email, verificationUrl);
   }
 
-  
-  // @Get('google-signup')
-  // @UseGuards(AuthGuard('google'))
-  // async googleAuth(@Req() req) {
-  //   // Google OAuth2 login process
-  //   console.log(req);
-  // }
-
-  // @Get('google-login')
-  // @UseGuards(AuthGuard('google'))
-  // async googleAuthLogin(@Req() req) {     
-  //   // Google OAuth2 login process
-  //   console.log(req);
-  // }
 }

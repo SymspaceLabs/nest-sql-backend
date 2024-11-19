@@ -2,6 +2,7 @@ import {
   NotFoundException,
   UnauthorizedException,
   BadRequestException,
+  HttpException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -130,22 +131,29 @@ export class UsersService {
   }
 
   async changeEmail(
-    userId: number,
-    changeEmailDto: ChangeEmailDto,
-  ): Promise<{ message: string }> {
-    const { newEmail } = changeEmailDto;
+      userId: number,
+      changeEmailDto: ChangeEmailDto,
+    ): Promise<{ message: string }> {
+      const { newEmail } = changeEmailDto;
 
-    // Check if the new email is already in use
-    const existingUser = await this.usersRepository.findOne({
-      where: { email: newEmail },
-    });
-    if (existingUser) {
-      throw new BadRequestException('Email is already in use');
-    }
+      // Validate email format
+      const emailRegex =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(newEmail)) {
+        throw new HttpException('Invalid email format', 473);
+      }
 
-    // Update the user's email
-    await this.usersRepository.update(userId, { email: newEmail });
+      // Check if the new email is already in use
+      const existingUser = await this.usersRepository.findOne({
+        where: { email: newEmail },
+      });
+      if (existingUser) {
+        throw new HttpException('Email is already in use', 471);
+      }
 
-    return { message: 'Email updated successfully' };
+      // Update the user's email
+      await this.usersRepository.update(userId, { email: newEmail });
+
+      return { message: 'Email updated successfully' };
   }
 }

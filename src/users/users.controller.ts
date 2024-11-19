@@ -46,28 +46,10 @@ export class UsersController {
     return user;
   }
 
-  @Patch(':id/request-change-email')
-  async requestChangeEmail(
-    @Param('id') id: string,
-    @Body() requestChangeEmailDto: RequestChangeEmailDto,
-  ): Promise<{ message: string }> {
-    await this.userService.requestChangeEmail(id, requestChangeEmailDto);
-    return { message: 'OTP sent to new email' };
-  }
-
-  @Patch(':id/verify-otp')
-  async verifyOtp(
-    @Param('id') id: string,
-    @Body() verifyOtpDto: VerifyOtpDto,
-  ): Promise<{ message: string }> {
-    await this.userService.verifyOtp(id, verifyOtpDto);
-    return { message: 'Email updated successfully' };
-  }
-
   @Patch('change-email')
   @UseGuards(AuthGuard('jwt'))
   async changeEmail(@Req() req, @Body() changeEmailDto: ChangeEmailDto) {
-    const userId = req.user.id; // Get the user ID from the authenticated user
+    const userId = req.user.id;
     return this.userService.changeEmail(userId, changeEmailDto);
   }
 }

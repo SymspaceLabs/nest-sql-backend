@@ -330,7 +330,7 @@ export class AuthService {
       // Find the user by email
       const user = await this.usersRepository.findOne({ where: { email } });
       if (!user) {
-        throw new Error('User not found');
+        throw new HttpException('User not found', 404);
       }
 
       // Activate the user
@@ -340,7 +340,17 @@ export class AuthService {
       return true;
     } catch (error) {
       this.logger.error(`Email verification failed: ${error.message}`);
-      return false;
+      if (error.name === 'TokenExpiredError') {
+        throw new HttpException(
+          'Email verification token has expired. Please request a new verification link.',
+          441,
+        );
+      } else {
+        throw new HttpException(
+          'Invalid verification token.',
+          400,
+        );
+      }
     }
   }
 
