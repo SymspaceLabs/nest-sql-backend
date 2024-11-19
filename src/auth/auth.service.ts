@@ -6,6 +6,7 @@ import {
   HttpStatus,
   ForbiddenException,
   BadRequestException,
+  PayloadTooLargeException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -63,8 +64,6 @@ export class AuthService {
       );
     }
   }
-  
-
   
   async signUpSeller(
     signUpDto: SignUpDto,
@@ -215,7 +214,6 @@ export class AuthService {
     };
   }
   
-    
   async login(loginDto: LoginDto): Promise<{ accessToken: string; user: any }> {
     const { email, password } = loginDto;
 
@@ -224,7 +222,12 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid email');
+      throw new UnauthorizedException('Account not found');
+    }
+
+    // Check if the user is verified
+    if (!user.isVerified) {
+      throw new PayloadTooLargeException('Your email is not verified. Please check your inbox to verify your email.');
     }
 
     const isPasswordMatched = await bcrypt.compare(password, user.password);
