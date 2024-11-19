@@ -16,7 +16,6 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { SignUpDto } from './dto/signup.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { GoogleOauthGuard } from './google-oauth.guard';
 import { Request, Response } from 'express';
 import { UsersService } from 'src/users/users.service';
 import { MailchimpService } from 'src/mailchimp/mailchimp.service';

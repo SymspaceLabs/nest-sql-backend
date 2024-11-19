@@ -5,7 +5,6 @@ import {
   HttpException,
   HttpStatus,
   ForbiddenException,
-  BadRequestException,
   PayloadTooLargeException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -23,14 +22,11 @@ import { Company } from 'src/companies/entities/company.entity';
 import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { RedisService } from '../redis/redis.service';
-import { OAuth2Client } from 'google-auth-library';
-import { ConfigService } from '@nestjs/config';
-import * as validator from 'validator'; // For robust email validation
+import * as validator from 'validator';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  private client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
   constructor(
     @InjectRepository(User)
@@ -40,7 +36,6 @@ export class AuthService {
     @InjectRepository(Company)
     private readonly companiesRepository: Repository<Company>,
     
-    private configService: ConfigService,
     private jwtService: JwtService,
     private redisService: RedisService,
     private readonly mailchimpService: MailchimpService,
@@ -64,7 +59,27 @@ export class AuthService {
       );
     }
   }
-  
+
+  private async parseJWT(idToken: string): Promise<any> {
+    try {
+      const decodedHeader: any = jwt.decode(idToken, { complete: true });
+      const payload = decodedHeader.payload;
+      const { sub, email, email_verified, name, picture, given_name, family_name } = payload;
+
+      return {
+        userId: sub,
+        email,
+        emailVerified: email_verified,
+        name,
+        firstName: given_name,
+        lastName: family_name,
+        picture,
+      }
+    } catch (error) {
+      throw new Error('Invalid ID token');
+    }
+  }
+
   async signUpSeller(
     signUpDto: SignUpDto,
   ): Promise<{ message: string; token?: string }> {
@@ -89,7 +104,7 @@ export class AuthService {
   
     // Validate email format
     if (!validator.isEmail(email)) {
-      throw new HttpException('Invalid email address.', 402); // Custom 402 error
+      throw new HttpException('Invalid email address.', 402);
     }
   
     // Validate password format
@@ -307,26 +322,6 @@ export class AuthService {
     };
   }
 
-  private async parseJWT(idToken: string): Promise<any> {
-    try {
-      const decodedHeader: any = jwt.decode(idToken, { complete: true });
-      const payload = decodedHeader.payload;
-      const { sub, email, email_verified, name, picture, given_name, family_name } = payload;
-
-      return {
-        userId: sub,
-        email,
-        emailVerified: email_verified,
-        name,
-        firstName: given_name,
-        lastName: family_name,
-        picture,
-      }
-    } catch (error) {
-      throw new Error('Invalid ID token');
-    }
-  }
-
   async verifyEmail(token: string): Promise<boolean> {
     try {
       // Verify and decode the token
@@ -349,23 +344,11 @@ export class AuthService {
     }
   }
 
-  async requestPasswordReset(email: string) {
-    const user = await this.usersRepository.findOne({ where: { email } });
-    if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
-
-    const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET, {
-      expiresIn: '1h',
-    });
-
-    await this.mailchimpService.sendPasswordResetEmail(user.email, token);
-  }
-
   async generateResetToken(email: string): Promise<void> {
     const user = await this.usersRepository.findOne({ where: { email } });
+    
     if (!user) {
-      throw new Error('User not found');
+      throw new HttpException('No account found with this email. Please verify your email and try again.', 421);
     }
 
     const token = crypto.randomBytes(32).toString('hex');
@@ -379,24 +362,13 @@ export class AuthService {
     await this.mailchimpService.sendPasswordResetEmail(email, token);
   }
 
-  async revokeGoogleToken(accessToken: string) {
-    const url = `https://oauth2.googleapis.com/revoke?token=${accessToken}`;
-    const result = await firstValueFrom(this.httpService.post(url, undefined));
-    const user = await this.authRepository.findOne({
-      where: { refreshToken: accessToken },
-    });
-    if (user) {
-      await this.authRepository.delete(user);
-    }
-    return result.data;
-  }
-
   async resetPassword(token: string, newPassword: string): Promise<void> {
     const user = await this.usersRepository.findOne({
       where: { resetToken: token },
     });
+
     if (!user || user.resetTokenExpiry < new Date()) {
-      throw new Error('Token is invalid or expired');
+      throw new HttpException('Your password reset link has expired. Please request a new link', 422);
     }
 
     user.password = await bcrypt.hash(newPassword, 10);

@@ -6,7 +6,6 @@ import { UsersModule } from './users/users.module';
 import { CategoriesModule } from './categories/categories.module';
 import { OrdersModule } from './orders/orders.module';
 import { AuthModule } from './auth/auth.module';
-import { GoogleStrategy } from './auth/google.strategy';
 import { MailchimpModule } from './mailchimp/mailchimp.module';
 import { EmailModule } from './email/email.module';
 import { ProductsModule } from './products/products.module';
@@ -59,6 +58,6 @@ import { UploadController } from './upload/upload.controller';
     RedisModule,
   ],
   controllers: [AppController, UploadController],
-  providers: [AppService, GoogleStrategy, MinioService],
+  providers: [AppService, MinioService],
 })
 export class AppModule {}
