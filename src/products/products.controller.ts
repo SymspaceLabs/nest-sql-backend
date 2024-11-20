@@ -38,12 +38,66 @@ export class ProductsController {
     return await this.productsService.findAll();
   }
 
-   @Get(':slug')
-   async getProductBySlug(@Param('slug') slug: string): Promise<Product> {
-     return this.productsService.findBySlug(slug);
-   }
+  @Get(':slug')
+  async getProductBySlug(@Param('slug') slug: string): Promise<Product> {
+    return this.productsService.findBySlug(slug);
+  }
 
-  // @Post('upload-product')
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    const productDetail = await this.productsService.findOne(id);
+    // const productDetailImg = await this.productsService.findOneProdImg(id);
+    // for (const img of productDetailImg) {
+    //   const newLinkFile = await this.minioService.getFileUrl(
+    //     'ecomm-development',
+    //     img.imageUrl,
+    //   );
+    //   img.imageUrl = newLinkFile;
+    // }
+
+    // const newThreeDmodelUrl = await this.minioService.getFileUrl(
+    //   'ecomm-development',
+    //   productDetail.threeDModel,
+    // );
+
+    // return {
+    //   id: productDetail.id,
+    //   name: productDetail.name,
+    //   prodImages: productDetailImg,
+    //   productStatus: productDetail.productStatus,
+    //   threeDModel: newThreeDmodelUrl, //productDetail.threeDModel,
+    //   category: productDetail.category,
+    //   modelSize: productDetail.modelSize,
+    //   productFitting: productDetail.productFitting,
+    //   productSizes: productDetail.productSizes,
+    //   productColors: productDetail.productColors,
+    //   productMaterial: productDetail.productMaterial,
+    //   productDimensions: productDetail.productDimensions,
+    //   productSizechart: productDetail.productSizechart,
+    //   productInsurance: productDetail.productInsurance,
+    //   productDescription: productDetail.productDescription,
+    //   price: productDetail.price,
+    //   strikethroughPrice: productDetail.strikethroughPrice,
+    //   chargeTax: productDetail.chargeTax,
+    //   costPerProduct: productDetail.costPerProduct,
+    //   profit: productDetail.profit,
+    //   margin: productDetail.margin,
+    //   createdAt: productDetail.createdAt,
+    // };
+    return 
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+    return this.productsService.update(id, updateProductDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.productsService.remove(id);
+  }
+
+    // @Post('upload-product')
   // @UseInterceptors(FilesInterceptor('file'))
   // async create(
   //   @Body() createProductDto: CreateProductDto,
@@ -164,103 +218,4 @@ export class ProductsController {
 
     // return modifiedProducts; 
   // }
-
-  // @Get(':slug')
-  // async getProductBySlug(@Param('slug') slug: string) {    
-    // const productDetail = await this.productsService.findProductBySlug(slug);
-    // const productDetailImg = await this.productsService.findOneProdImg(productDetail.id);
-    // for (const img of productDetailImg) {
-    //   const newLinkFile = await this.minioService.getFileUrl(
-    //     'ecomm-development',
-    //     img.imageUrl,
-    //   );
-    //   img.imageUrl = newLinkFile;
-    // }
-
-    // const newThreeDmodelUrl = await this.minioService.getFileUrl(
-    //   'ecomm-development',
-    //   productDetail.threeDModel,
-    // );
-
-    // return {
-    //   id: productDetail.id,
-    //   name: productDetail.name,
-    //   prodImages: productDetailImg,
-    //   productStatus: productDetail.productStatus,
-    //   threeDModel: newThreeDmodelUrl, //productDetail.threeDModel,
-    //   category: productDetail.category,
-    //   modelSize: productDetail.modelSize,
-    //   productFitting: productDetail.productFitting,
-    //   productSizes: productDetail.productSizes,
-    //   productColors: productDetail.productColors,
-    //   productMaterial: productDetail.productMaterial,
-    //   brand: productDetail.productBrand,
-    //   productDimensions: productDetail.productDimensions,
-    //   productSizechart: productDetail.productSizechart,
-    //   productInsurance: productDetail.productInsurance,
-    //   productDescription: productDetail.productDescription,
-    //   price: productDetail.price,
-    //   strikethroughPrice: productDetail.strikethroughPrice,
-    //   chargeTax: productDetail.chargeTax,
-    //   costPerProduct: productDetail.costPerProduct,
-    //   profit: productDetail.profit,
-    //   margin: productDetail.margin,
-    //   createdAt: productDetail.createdAt,
-    //   slug: productDetail.slug,
-    // };
-  // }
-
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const productDetail = await this.productsService.findOne(id);
-    // const productDetailImg = await this.productsService.findOneProdImg(id);
-    // for (const img of productDetailImg) {
-    //   const newLinkFile = await this.minioService.getFileUrl(
-    //     'ecomm-development',
-    //     img.imageUrl,
-    //   );
-    //   img.imageUrl = newLinkFile;
-    // }
-
-    // const newThreeDmodelUrl = await this.minioService.getFileUrl(
-    //   'ecomm-development',
-    //   productDetail.threeDModel,
-    // );
-
-    // return {
-    //   id: productDetail.id,
-    //   name: productDetail.name,
-    //   prodImages: productDetailImg,
-    //   productStatus: productDetail.productStatus,
-    //   threeDModel: newThreeDmodelUrl, //productDetail.threeDModel,
-    //   category: productDetail.category,
-    //   modelSize: productDetail.modelSize,
-    //   productFitting: productDetail.productFitting,
-    //   productSizes: productDetail.productSizes,
-    //   productColors: productDetail.productColors,
-    //   productMaterial: productDetail.productMaterial,
-    //   productDimensions: productDetail.productDimensions,
-    //   productSizechart: productDetail.productSizechart,
-    //   productInsurance: productDetail.productInsurance,
-    //   productDescription: productDetail.productDescription,
-    //   price: productDetail.price,
-    //   strikethroughPrice: productDetail.strikethroughPrice,
-    //   chargeTax: productDetail.chargeTax,
-    //   costPerProduct: productDetail.costPerProduct,
-    //   profit: productDetail.profit,
-    //   margin: productDetail.margin,
-    //   createdAt: productDetail.createdAt,
-    // };
-    return 
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productsService.update(+id, updateProductDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productsService.remove(id);
-  }
 }

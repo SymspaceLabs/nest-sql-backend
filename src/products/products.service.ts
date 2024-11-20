@@ -22,8 +22,7 @@ export class ProductsService {
   constructor(
     @InjectRepository(Product) private readonly productRepository: Repository<Product>,
     @InjectRepository(Company) private companiesRepository: Repository<Company>,
-    // @InjectRepository(ProductImage)
-    // private productImageRepository: Repository<ProductImage>,
+    @InjectRepository(ProductImage) private productImageRepository: Repository<ProductImage>,
     // @InjectRepository(ProductVariantEntity)
     // private productVariantEntityRepository: Repository<ProductVariantEntity>,
     // @InjectRepository(ProductVariantPropertyEntity)
@@ -235,34 +234,53 @@ export class ProductsService {
     return product;
   }
 
-  // async findOneProdImg(id: string) {
-  //   const queryBuilder =
-  //     this.productImageRepository.createQueryBuilder('productImage');
-  //   return queryBuilder
-  //     .where('productId= :productId', {
-  //       productId: id,
-  //     })
-  //     .getMany();
-  //   // const product = await this.productImageRepository.findOneBy({productId
-  //   // if (!product) {
-  //   //   throw new NotFoundException(`Product with ID ${id} not found`);
-  //   // }
-  //   // return product;
-  // }
-
-  update(id: number, updateProductDto: UpdateProductDto) {
-    const productIndex = this.products.findIndex((prod) => prod.id === id);
-    if (productIndex === -1) {
+  async update(id: string, updateProductDto: UpdateProductDto): Promise<Product> {
+    // Find the product by ID (without its related images initially)
+    const product = await this.productRepository.findOne({
+      where: { id },
+      relations: ['company'], // No need to fetch images yet
+    });
+  
+    if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
-    const updatedProduct = {
-      ...this.products[productIndex],
-      ...updateProductDto,
-    };
-    this.products[productIndex] = updatedProduct;
-    return updatedProduct;
+  
+    // Handle `images` separately (delete existing ones and add new ones)
+    if (updateProductDto.images) {
+      // 1. Delete all the existing images related to this product
+      const existingImages = product.images;
+      if (existingImages && existingImages.length > 0) {
+        await this.productImageRepository.remove(existingImages);
+      }
+  
+      // 2. Create new images, passing the actual product object
+      const newImages = updateProductDto.images.map((url) => {
+        const image = this.productImageRepository.create({
+          url,
+          altText: '', // Optionally set altText if needed
+          product, // Pass the full product object, not just the ID
+        });
+        return image;
+      });
+  
+      // 3. Save the new images to the database
+      await this.productImageRepository.save(newImages);
+  
+      // Associate the new images with the product
+      product.images = newImages;
+    }
+  
+    // Omit `company` and `images` from `updateProductDto` to prevent type conflicts
+    const { company, images, ...otherUpdates } = updateProductDto;
+  
+    // Merge the remaining updates (excluding images and company)
+    const updatedProduct = this.productRepository.merge(product, otherUpdates);
+  
+    // Save and return the updated product
+    return await this.productRepository.save(updatedProduct);
   }
-
+  
+  
   async remove(id: string): Promise<{ message: string; product: Product }> {
     const product = await this.productRepository.findOne({ where: { id } });
     if (!product) {

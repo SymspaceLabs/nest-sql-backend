@@ -42,6 +42,10 @@ export class Product {
   })
   images: ProductImage[];
 
+  @Column({ nullable: true })
+  description: string;
+
+
   
   // @Column({
   //   type: 'enum',
@@ -88,9 +92,6 @@ export class Product {
 
   // @Column({ nullable: true })
   // productBrand?: string;
-
-  // @Column({ type: 'text', nullable: true })
-  // productDescription: string;
 
   // @Column({ type: 'float', nullable: true })
   // strikethroughPrice?: number;
