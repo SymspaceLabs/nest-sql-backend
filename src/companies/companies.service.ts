@@ -18,8 +18,11 @@ export class CompaniesService {
   }
 
   async findAll(): Promise<Company[]> {
-    return await this.companiesRepository.find();
+    return await this.companiesRepository.find({
+      relations: ['user'],
+    });
   }
+  
 
   async findOne(id: string): Promise<Company> {
     const company = await this.companiesRepository.findOne({ where: { id } });
@@ -43,10 +46,12 @@ export class CompaniesService {
     return updatedCompany;
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string): Promise<{ message: string }> {
     const deleteResult = await this.companiesRepository.delete(id);
     if (!deleteResult.affected) {
       throw new NotFoundException(`Company with ID ${id} not found`);
     }
+    return { message: `Company with ID ${id} has been successfully deleted` };
   }
+  
 }
