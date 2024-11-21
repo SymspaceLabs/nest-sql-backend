@@ -30,10 +30,10 @@ export class CompaniesController {
     return this.companiesService.findOne(id);
   }
 
-  @Get('slug/:slug')
-  async findBySlug(@Param('slug') slug: string) {
-    return await this.companiesService.findBySlug(slug);
-  }
+  // @Get('slug/:slug')
+  // async findBySlug(@Param('slug') slug: string) {
+  //   return await this.companiesService.findBySlug(slug);
+  // }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCompanyDto: UpdateCompanyDto) {
