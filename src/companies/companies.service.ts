@@ -23,11 +23,18 @@ export class CompaniesService {
     });
   }
   
-
   async findOne(id: string): Promise<Company> {
     const company = await this.companiesRepository.findOne({ where: { id } });
     if (!company) {
       throw new NotFoundException(`Company with ID ${id} not found`);
+    }
+    return company;
+  }
+
+  async findBySlug(slug: string): Promise<Company | null> {
+    const company = await this.companiesRepository.findOne({ where: { slug } });
+    if (!company) {
+      throw new NotFoundException(`Company with ID ${slug} not found`);
     }
     return company;
   }

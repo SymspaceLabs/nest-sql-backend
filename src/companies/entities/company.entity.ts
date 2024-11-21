@@ -4,7 +4,9 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
-  OneToMany
+  OneToMany,
+  BeforeInsert,
+  BeforeUpdate
 } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Product } from 'src/products/entities/product.entity';
@@ -30,4 +32,19 @@ export class Company {
   // One Company has many Products
   @OneToMany(() => Product, (product) => product.company)
   products: Product[];
+
+  @Column({ unique: true })
+  slug: string;
+
+  // Generate slug before inserting or updating
+  @BeforeInsert()
+  @BeforeUpdate()
+  generateSlug() {
+    if (this.businessName) {
+      this.slug = this.businessName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric characters with hyphens
+        .replace(/^-+|-+$/g, ''); // Trim hyphens at start and end
+    }
+  }
 }
