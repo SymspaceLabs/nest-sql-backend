@@ -36,15 +36,15 @@ export class Company {
   @Column({ unique: true })
   slug: string;
 
-  // Generate slug before inserting or updating
-  @BeforeInsert()
-  @BeforeUpdate()
-  generateSlug() {
-    if (this.businessName) {
-      this.slug = this.businessName
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric characters with hyphens
-        .replace(/^-+|-+$/g, ''); // Trim hyphens at start and end
-    }
-  }
+  // // Generate slug before inserting or updating
+  // @BeforeInsert()
+  // @BeforeUpdate()
+  // generateSlug() {
+  //   if (this.businessName) {
+  //     this.slug = this.businessName
+  //       .toLowerCase()
+  //       .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric characters with hyphens
+  //       .replace(/^-+|-+$/g, ''); // Trim hyphens at start and end
+  //   }
+  // }
 }
