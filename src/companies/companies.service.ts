@@ -31,13 +31,13 @@ export class CompaniesService {
     return company;
   }
 
-  // async findBySlug(slug: string): Promise<Company | null> {
-  //   const company = await this.companiesRepository.findOne({ where: { slug } });
-  //   if (!company) {
-  //     throw new NotFoundException(`Company with ID ${slug} not found`);
-  //   }
-  //   return company;
-  // }
+  async findBySlug(slug: string): Promise<Company | null> {
+    const company = await this.companiesRepository.findOne({ where: { slug } });
+    if (!company) {
+      throw new NotFoundException(`Company with ID ${slug} not found`);
+    }
+    return company;
+  }
 
   async update(
     id: string,
