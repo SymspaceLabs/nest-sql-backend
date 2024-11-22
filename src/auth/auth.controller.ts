@@ -11,6 +11,7 @@ import {
   BadRequestException,
   HttpCode,
   UnauthorizedException,
+  HttpException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -20,6 +21,7 @@ import { Request, Response } from 'express';
 import { UsersService } from 'src/users/users.service';
 import { MailchimpService } from 'src/mailchimp/mailchimp.service';
 import { JwtService } from '@nestjs/jwt';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -172,6 +174,56 @@ export class AuthController {
     @Body('verificationUrl') verificationUrl: string,
   ) {
     return this.mailChimpService.sendEmail(email, verificationUrl);
+  }
+
+  @Post('change-password')
+  @UseGuards(AuthGuard('jwt'))
+  async changePassword(
+    @Body() changePasswordDto: ChangePasswordDto,  // Body contains the change password request
+    @Req() req: any,  // Request object, contains user info
+  ) {
+    const { currentPassword, newPassword } = changePasswordDto;
+    const userId = req.user.id;  // Extract user ID from the decoded JWT token
+    return await this.authService.changePassword(userId, currentPassword, newPassword);
+
+    try {
+    } catch (error) {
+      throw new BadRequestException(error.message);  // Handle and propagate errors
+    }
+  }
+
+  @Post('resend-verification')
+  async resendVerification(@Body() resendVerificationDto: any) {
+    const { email } = resendVerificationDto;
+    const user = await this.authService.findUserByEmail(email);
+
+    if (!user) {
+      throw new HttpException(
+        'User not found. Please register first.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    
+    if (user.isVerified) {
+      throw new HttpException(
+        'Account is already verified.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Resend the verification email
+    const success = await this.authService.sendVerificationEmail(user);
+    if (!success) {
+      throw new HttpException(
+        'Failed to send verification email. Please try again later.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    return {
+      message: 'Verification email has been resent successfully.',
+      status: 'success',
+    };
   }
 
 }

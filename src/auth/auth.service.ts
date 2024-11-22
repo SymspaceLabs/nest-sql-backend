@@ -6,6 +6,7 @@ import {
   HttpStatus,
   ForbiddenException,
   PayloadTooLargeException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -102,12 +103,10 @@ export class AuthService {
   
     const { password, email } = signUpDto;
   
-    // Validate email format
     if (!validator.isEmail(email)) {
       throw new HttpException('Invalid email address.', 402);
     }
   
-    // Validate password format
     this.validatePasswordFormat(password);
   
     const { firstName, lastName, role = 'seller', businessName, website } =
@@ -240,7 +239,6 @@ export class AuthService {
       throw new UnauthorizedException('Account not found');
     }
 
-    // Check if the user is verified
     if (!user.isVerified) {
       throw new PayloadTooLargeException('Your email is not verified. Please check your inbox to verify your email.');
     }
@@ -256,7 +254,6 @@ export class AuthService {
       { secret: process.env.JWT_SECRET, expiresIn: '1h' },
     );
 
-    // Store the token in Redis
     await this.redisService
       .getClient()
       .set(`auth:${user.id}`, accessToken, 'EX', 3600);
@@ -324,16 +321,13 @@ export class AuthService {
 
   async verifyEmail(token: string): Promise<boolean> {
     try {
-      // Verify and decode the token
       const { email } = this.jwtService.verify(token);
 
-      // Find the user by email
       const user = await this.usersRepository.findOne({ where: { email } });
       if (!user) {
         throw new HttpException('User not found', 404);
       }
 
-      // Activate the user
       user.isVerified = true;
       await this.usersRepository.save(user);
 
@@ -472,4 +466,57 @@ export class AuthService {
       throw error;
     }
   }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new BadRequestException('User not found.');
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    
+    if (!isMatch) {
+      throw new BadRequestException('Current password is incorrect.');
+    }
+
+    if (currentPassword === newPassword) {
+      throw new BadRequestException('New password cannot be the same as the current password.');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashedPassword;
+    await this.usersRepository.save(user);
+
+    return { message: 'Password updated successfully!' };
+  }
+
+  async findUserByEmail(email: string) {
+    const user = this.usersRepository.findOne({
+      where: { email },
+    });
+
+    return user;
+  }
+
+  async sendVerificationEmail(user: any): Promise<boolean> {
+    try {
+      const token = this.generateVerificationToken(user); // Implement token generation
+      const verificationUrl = `${process.env.BACKEND_URL}/auth/verify-email?token=${token}`;
+      await this.mailchimpService.sendVerificationEmail(user.email, verificationUrl)
+      return true;
+    } catch (error) {
+      console.error('Failed to send verification email:', error);
+      return false;
+    }
+  }
+
+  private generateVerificationToken(user: any): string {
+    const token = this.jwtService.sign(
+      { userId: user.id, email: user.email, role: user.role },
+      { secret: process.env.JWT_SECRET, expiresIn: '1h' },
+    );
+    return token;
+  }
+
 }
