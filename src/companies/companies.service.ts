@@ -32,7 +32,10 @@ export class CompaniesService {
   }
 
   async findBySlug(slug: string): Promise<Company | null> {
-    const company = await this.companiesRepository.findOne({ where: { slug } });
+    const company = await this.companiesRepository.findOne({
+      where: { slug },
+      relations: ['products', 'products.images'],
+    });
     if (!company) {
       throw new NotFoundException(`Company with ID ${slug} not found`);
     }
