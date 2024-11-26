@@ -91,44 +91,44 @@ export class UsersService {
     });
   }
 
-  async requestChangeEmail(
-    userId: string,
-    requestChangeEmailDto: RequestChangeEmailDto,
-  ): Promise<void> {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+  // async requestChangeEmail(
+  //   userId: string,
+  //   requestChangeEmailDto: RequestChangeEmailDto,
+  // ): Promise<void> {
+  //   const user = await this.usersRepository.findOne({ where: { id: userId } });
+  //   if (!user) {
+  //     throw new NotFoundException('User not found');
+  //   }
 
-    // Generate OTP and store it temporarily
-    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit OTP
-    user.pendingEmail = requestChangeEmailDto.newEmail;
-    user.otp = otp; // Save OTP temporarily
-    user.otpExpiry = new Date(Date.now() + 10 * 60000); // OTP valid for 10 minutes
-    await this.usersRepository.save(user);
+  //   // Generate OTP and store it temporarily
+  //   const otp = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit OTP
+  //   user.pendingEmail = requestChangeEmailDto.newEmail;
+  //   user.otp = otp; // Save OTP temporarily
+  //   user.otpExpiry = new Date(Date.now() + 10 * 60000); // OTP valid for 10 minutes
+  //   await this.usersRepository.save(user);
 
-    // Send OTP to new email
-    await this.mailchimpService.sendOtp(user.pendingEmail, otp);
-  }
+  //   // Send OTP to new email
+  //   await this.mailchimpService.sendOtp(user.pendingEmail, otp);
+  // }
 
-  async verifyOtp(userId: string, verifyOtpDto: VerifyOtpDto): Promise<void> {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+  // async verifyOtp(userId: string, verifyOtpDto: VerifyOtpDto): Promise<void> {
+  //   const user = await this.usersRepository.findOne({ where: { id: userId } });
+  //   if (!user) {
+  //     throw new NotFoundException('User not found');
+  //   }
 
-    // Check if OTP matches and is still valid
-    if (user.otp !== verifyOtpDto.otp || user.otpExpiry < new Date()) {
-      throw new UnauthorizedException('Invalid or expired OTP');
-    }
+  //   // Check if OTP matches and is still valid
+  //   if (user.otp !== verifyOtpDto.otp || user.otpExpiry < new Date()) {
+  //     throw new UnauthorizedException('Invalid or expired OTP');
+  //   }
 
-    // Update the user's email and clear OTP
-    user.email = user.pendingEmail;
-    user.pendingEmail = null;
-    user.otp = null;
-    user.otpExpiry = null;
-    await this.usersRepository.save(user);
-  }
+  //   // Update the user's email and clear OTP
+  //   user.email = user.pendingEmail;
+  //   user.pendingEmail = null;
+  //   user.otp = null;
+  //   user.otpExpiry = null;
+  //   await this.usersRepository.save(user);
+  // }
 
   async changeEmail(
       userId: number,

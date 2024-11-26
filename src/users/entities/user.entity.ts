@@ -15,15 +15,6 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ nullable: true })
-  pendingEmail: string; // Temporarily holds the new email until OTP verification
-
-  @Column({ nullable: true })
-  otp: string; // Stores the OTP
-
-  @Column({ type: 'timestamp', nullable: true })
-  otpExpiry: Date; // Stores OTP expiry time
-
   @Column()
   password: string;
 
@@ -38,6 +29,9 @@ export class User {
 
   @Column({ nullable: true })
   resetTokenExpiry: Date;
+
+  @Column({ nullable: true })
+  avatar: string;
 
   @OneToOne(() => Company, (company) => company.user)
   company: Company;

@@ -3,27 +3,26 @@ import {
   UnauthorizedException,
   Logger,
   HttpException,
-  HttpStatus,
   ForbiddenException,
   PayloadTooLargeException,
   BadRequestException,
 } from '@nestjs/common';
+import User from '../users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import User from '../users/entities/user.entity';
 import { Auth } from './entities/auth.entity';
-import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { SignUpDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { MailchimpService } from '../mailchimp/mailchimp.service';
-import * as jwt from 'jsonwebtoken';
-import * as crypto from 'crypto';
 import { Company } from 'src/companies/entities/company.entity';
-import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { RedisService } from '../redis/redis.service';
+import * as jwt from 'jsonwebtoken';
+import * as crypto from 'crypto';
 import * as validator from 'validator';
+import * as bcrypt from 'bcrypt';
+
 
 @Injectable()
 export class AuthService {
@@ -287,6 +286,7 @@ export class AuthService {
           email: googleUser.email,
           firstName: googleUser.firstName || '',
           lastName: googleUser.lastName || '',
+          avatar: googleUser.picture || '',
           isVerified: true,
           role: 'buyer',
           password: '',
@@ -315,6 +315,7 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
+        avatar: user.avatar,
       },
     };
   }
@@ -374,6 +375,8 @@ export class AuthService {
     if (!user || user.resetTokenExpiry < new Date()) {
       throw new HttpException('Your password reset link has expired. Please request a new link', 422);
     }
+
+    this.validatePasswordFormat(newPassword);
 
     user.password = await bcrypt.hash(newPassword, 10);
     user.resetToken = null;
