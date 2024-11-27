@@ -16,6 +16,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { RequestChangeEmailDto } from './dto/request-change-email.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ChangeEmailDto } from './dto/change-email.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -51,5 +52,14 @@ export class UsersController {
   async changeEmail(@Req() req, @Body() changeEmailDto: ChangeEmailDto) {
     const userId = req.user.id;
     return this.userService.changeEmail(userId, changeEmailDto);
+  }
+
+  @Patch(':id')
+  @UseGuards(AuthGuard('jwt'))
+  async updateUser(
+    @Param('id') id: string,
+    @Body() updates: Partial<User>,
+  ) {
+    return this.userService.editUser(id, updates);
   }
 }
