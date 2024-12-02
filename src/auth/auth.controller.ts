@@ -87,6 +87,16 @@ export class AuthController {
     }
   }
 
+  @Post('login/apple')
+  @HttpCode(HttpStatus.OK)
+  async loginWithApple(@Body('idToken') idToken: string) {
+    try {
+      return await this.authService.loginWithApple(idToken);
+    } catch (error) {
+      throw new UnauthorizedException('Google authentication failed');
+    }
+  }
+
   @Get('logout') 
   async logout(@Req() req: Request, @Res() res: Response) {
     res.clearCookie('auth_token', { path: '/', httpOnly: true, sameSite: 'lax' });

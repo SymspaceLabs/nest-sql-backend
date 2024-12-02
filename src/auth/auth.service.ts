@@ -22,6 +22,7 @@ import * as jwt from 'jsonwebtoken';
 import * as crypto from 'crypto';
 import * as validator from 'validator';
 import * as bcrypt from 'bcrypt';
+import * as jwksClient from 'jwks-rsa';
 
 
 @Injectable()
@@ -41,6 +42,15 @@ export class AuthService {
     private readonly mailchimpService: MailchimpService,
     private readonly httpService: HttpService,
   ) {}
+
+  private appleClient = jwksClient({
+      jwksUri: 'https://appleid.apple.com/auth/keys',
+  });
+
+  async getApplePublicKey(kid: string): Promise<string> {
+      const key = await this.appleClient.getSigningKey(kid);
+      return key.getPublicKey();
+  }
 
   private validateFields(
     fields: Record<string, any>,
@@ -318,6 +328,72 @@ export class AuthService {
         avatar: user.avatar,
       },
     };
+  }
+
+  async loginWithApple(idToken: string) {
+    const decodedHeader: any = jwt.decode(idToken, { complete: true });
+
+    if (!decodedHeader || !decodedHeader.header || !decodedHeader.header.kid) {
+      throw new UnauthorizedException('Invalid token');
+    }
+
+    const publicKey = await this.getApplePublicKey(decodedHeader.header.kid);
+
+    try {
+        const verifiedPayload:any = jwt.verify(idToken, publicKey, {
+            algorithms: ['RS256'],
+            issuer: 'https://appleid.apple.com',
+            audience: 'com.symspacelabs.si', // Replace with your client ID
+        });
+
+        const { email } = verifiedPayload;
+
+        let user = await this.usersRepository.findOne({
+          where: { email },
+        });
+
+        if (!user) {
+          user = this.usersRepository.create({
+              email: email,
+              firstName: verifiedPayload.firstName || '',
+              lastName: verifiedPayload.lastName || '',
+              avatar: verifiedPayload.picture || '',
+              isVerified: true,
+              role: 'buyer',
+              password: '',
+          });
+    
+          await this.usersRepository.save(user);
+        }
+
+        const accessToken = this.jwtService.sign(
+          { userId: user.id, email: user.email },
+          { secret: process.env.JWT_SECRET, expiresIn: '1h' },
+        );
+
+        // Store the token in Redis
+        await this.redisService
+        .getClient()
+        .set(`auth:${user.id}`, accessToken, 'EX', 3600);
+
+        await this.authRepository.update(user.id, { refreshToken: accessToken });
+
+        return {
+          accessToken,
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role,
+            avatar: user.avatar,
+          },
+        };
+
+
+      } catch (err) {
+        throw new UnauthorizedException('Invalid token 2');
+    }
   }
 
   async verifyEmail(token: string): Promise<boolean> {
