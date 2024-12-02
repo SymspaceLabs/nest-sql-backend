@@ -93,7 +93,7 @@ export class AuthController {
     try {
       return await this.authService.loginWithApple(idToken);
     } catch (error) {
-      throw new UnauthorizedException('Google authentication failed');
+      throw new UnauthorizedException('Apple authentication failed');
     }
   }
 
