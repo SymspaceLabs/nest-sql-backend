@@ -97,6 +97,16 @@ export class AuthController {
     }
   }
 
+  @Post('login/facebook')
+  @HttpCode(HttpStatus.OK)
+  async loginWithFacebook(@Body('accessToken') idToken: string) {
+    try {
+      return await this.authService.loginWithFacebook(idToken);
+    } catch (error) {
+      throw new UnauthorizedException('Facebook authentication failed');
+    }
+  }
+
   @Get('logout') 
   async logout(@Req() req: Request, @Res() res: Response) {
     res.clearCookie('auth_token', { path: '/', httpOnly: true, sameSite: 'lax' });
