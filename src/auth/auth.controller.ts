@@ -99,13 +99,18 @@ export class AuthController {
 
   @Post('login/facebook')
   @HttpCode(HttpStatus.OK)
-  async loginWithFacebook(@Body('accessToken') idToken: string) {
+  async loginWithFacebook(@Body('accessToken') accessToken: string) {
     try {
-      return await this.authService.loginWithFacebook(idToken);
+      return await this.authService.loginWithFacebook(accessToken);
     } catch (error) {
+      if (error.response?.status === 400 && error.response?.data?.error?.type === 'OAuthException') {
+        // Handle expired or invalid access token from Facebook
+        throw new UnauthorizedException('Invalid or expired Facebook access token');
+      }
       throw new UnauthorizedException('Facebook authentication failed');
     }
   }
+
 
   @Get('logout') 
   async logout(@Req() req: Request, @Res() res: Response) {

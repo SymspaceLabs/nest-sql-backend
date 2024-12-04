@@ -6,6 +6,7 @@ import {
   ForbiddenException,
   PayloadTooLargeException,
   BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import User from '../users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -398,78 +399,12 @@ export class AuthService {
     }
   }
 
-  // async loginWithFacebook(acessToken: string) {
-  //   const decodedHeader: any = jwt.decode(acessToken, { complete: true });
-
-  //   if (!decodedHeader || !decodedHeader.header || !decodedHeader.header.kid) {
-  //     throw new UnauthorizedException('Invalid token');
-  //   }
-
-  //   const publicKey = await this.getApplePublicKey(decodedHeader.header.kid);
-
-  //   try {
-  //       const verifiedPayload:any = jwt.verify(acessToken, publicKey, {
-  //           algorithms: ['RS256'],
-  //           issuer: 'https://appleid.apple.com',
-  //           audience: 'com.symspacelabs.si', // Replace with your client ID
-  //       });
-
-  //       const { email } = verifiedPayload;
-
-  //       let user = await this.usersRepository.findOne({
-  //         where: { email },
-  //       });
-
-  //       if (!user) {
-  //         user = this.usersRepository.create({
-  //             email: email,
-  //             firstName: verifiedPayload.firstName || '',
-  //             lastName: verifiedPayload.lastName || '',
-  //             avatar: verifiedPayload.picture || '',
-  //             isVerified: true,
-  //             role: 'buyer',
-  //             password: '',
-  //         });
-    
-  //         await this.usersRepository.save(user);
-  //       }
-
-  //       const accessToken = this.jwtService.sign(
-  //         { userId: user.id, email: user.email },
-  //         { secret: process.env.JWT_SECRET, expiresIn: '1h' },
-  //       );
-
-  //       // Store the token in Redis
-  //       await this.redisService
-  //       .getClient()
-  //       .set(`auth:${user.id}`, accessToken, 'EX', 3600);
-
-  //       await this.authRepository.update(user.id, { refreshToken: accessToken });
-
-  //       return {
-  //         accessToken,
-  //         user: {
-  //           id: user.id,
-  //           email: user.email,
-  //           firstName: user.firstName,
-  //           lastName: user.lastName,
-  //           role: user.role,
-  //           avatar: user.avatar,
-  //         },
-  //       };
-
-
-  //     } catch (err) {
-  //       throw new UnauthorizedException('Invalid token 2');
-  //   }
-  // }
-
   async loginWithFacebook(accessToken: string) {
     try {
       // Fetch user info from Facebook
       const userInfoUrl = `https://graph.facebook.com/me?fields=id,first_name,last_name,email,picture&access_token=${accessToken}`;
       const userInfoResponse: any = await axios.get(userInfoUrl);
-
+  
       const { email, first_name, last_name, picture } = userInfoResponse.data;
   
       // Check if user exists in the database
@@ -483,7 +418,7 @@ export class AuthService {
           email: email,
           firstName: first_name || '',
           lastName: last_name || '',
-          avatar: picture.data.url || '',
+          avatar: picture?.data?.url || '',
           isVerified: true,
           role: 'buyer',
           password: '',
@@ -518,10 +453,13 @@ export class AuthService {
         },
       };
     } catch (error) {
-      console.error("Error handling Facebook login:", error.message);
-      return { message: "Internal server error" };
+      if (error.response?.data?.error?.type === 'OAuthException') {
+        throw new UnauthorizedException('Invalid or expired Facebook access token');
+      }
+      throw new InternalServerErrorException('Error handling Facebook login');
     }
   }
+  
   
 
   async verifyEmail(token: string): Promise<boolean> {
