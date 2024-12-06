@@ -8,7 +8,7 @@ import {
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import User from '../users/entities/user.entity';
+import User, { AuthMethod } from '../users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Auth } from './entities/auth.entity';
@@ -303,6 +303,7 @@ export class AuthService {
           isVerified: true,
           role: 'buyer',
           password: '',
+          authMethod: AuthMethod.GOOGLE,
       });
 
       await this.usersRepository.save(user);
@@ -364,6 +365,7 @@ export class AuthService {
               isVerified: true,
               role: 'buyer',
               password: '',
+              authMethod: AuthMethod.APPLE,
           });
     
           await this.usersRepository.save(user);
@@ -422,6 +424,7 @@ export class AuthService {
           isVerified: true,
           role: 'buyer',
           password: '',
+          authMethod: AuthMethod.FACEBOOK,
         });
   
         await this.usersRepository.save(user);

@@ -104,7 +104,6 @@ export class AuthController {
       return await this.authService.loginWithFacebook(accessToken);
     } catch (error) {
       if (error.response?.status === 400 && error.response?.data?.error?.type === 'OAuthException') {
-        // Handle expired or invalid access token from Facebook
         throw new UnauthorizedException('Invalid or expired Facebook access token');
       }
       throw new UnauthorizedException('Facebook authentication failed');

@@ -97,31 +97,6 @@ export class ProductsController {
     return this.productsService.remove(id);
   }
 
-    // @Post('upload-product')
-  // @UseInterceptors(FilesInterceptor('file'))
-  // async create(
-  //   @Body() createProductDto: CreateProductDto,
-  //   @UploadedFiles(
-  //     new ParseFilePipe({
-  //       validators: [
-  //         new FileTypeValidator({
-  //           fileType: 'image/png|image/jpeg|model/gltf-binary',
-  //         }),
-  //         new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 4 }),
-  //       ],
-  //       fileIsRequired: false,
-  //     }),
-  //   )
-  //   file: Express.Multer.File[],
-  //   // file: File[],
-  //   // file: Express.Multer.File,
-  // ) {
-  //   // console.log('file upload : ', file);
-  //   createProductDto.images = file;
-
-  //   return await this.productsService.create(createProductDto);
-  // }
-
   // @Get(':bucket/:filename')
   // async getFile(
   //   @Param('bucket') bucket: string,
@@ -139,43 +114,6 @@ export class ProductsController {
   //   } catch (err) {
   //     res.status(500).send('Error retrieving file');
   //   }
-  // }
-
-  // @Get()
-  // async findAll() {
-    // const allProducts = await this.productsService.findAll();
-    // const modifiedProducts = [];
-
-    // for (const product of allProducts) {
-    //   // Retrieve images for the current product
-    //   const productDetailImg = await this.productsService.findOneProdImg(
-    //     product.id,
-    //   );
-
-    //   // Apply any custom logic to the images, if needed
-    //   for (const img of productDetailImg) {
-    //     // Example: Get a signed URL for each image
-    //     img.imageUrl = await this.minioService.getFileUrl(
-    //       'ecomm-development',
-    //       img.imageUrl,
-    //     );
-    //   }
-    //   product.threeDModel = await this.minioService.getFileUrl(
-    //     'ecomm-development',
-    //     product.threeDModel,
-    //   );
-
-    //   // Custom logic for each product
-    //   const modifiedProduct = {
-    //     ...product,
-    //     images: productDetailImg, // Attach the retrieved and processed images
-    //   };
-
-    //   // Add the modified product to the array
-    //   modifiedProducts.push(modifiedProduct);
-    // }
-
-    // return modifiedProducts;
   // }
 
   // @Get('new-arrival')

@@ -1,6 +1,13 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
 
+export enum AuthMethod {
+  EMAIL = 'email',
+  GOOGLE = 'google',
+  FACEBOOK = 'facebook',
+  APPLE = 'apple',
+}
+
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -35,6 +42,13 @@ export class User {
 
   @OneToOne(() => Company, (company) => company.user)
   company: Company;
+
+  @Column({
+    type: 'enum',
+    enum: AuthMethod,
+    default: AuthMethod.EMAIL,
+  })
+  authMethod: AuthMethod;
 }
 
 export default User;

@@ -1,8 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, OneToOne } from 'typeorm';
 import { ProductImage } from 'src/product-images/entities/product-image.entity';
 import { Stock } from 'src/stock/entities/stock.entity';
 import { ProductVariantEntity } from '../../product-variant/entities/product-variant.entity';
 import { Company } from 'src/companies/entities/company.entity';
+import { ProductColor } from 'src/product-colors/entities/product-color.entity';
+import { Product3DModel } from 'src/product-3d-models/entities/product-3d-model.entity';
+
 
 export enum ProductStatus {
   ACTIVE = 'Active',
@@ -30,7 +33,7 @@ export class Product {
   category: string;
 
   @ManyToOne(() => Company, (company) => company.products, {
-    onDelete: 'CASCADE', // If a company is deleted, all related products will also be deleted
+    onDelete: 'CASCADE',
   })
   company: Company;
 
@@ -45,15 +48,25 @@ export class Product {
   @Column({ nullable: true })
   description: string;
 
+  @Column({
+    type: 'enum',
+    enum: ProductStatus,
+    default: ProductStatus.DRAFT,
+  })
+  status: ProductStatus;
 
-  
-  // @Column({
-  //   type: 'enum',
-  //   enum: ProductStatus,
-  //   default: ProductStatus.DRAFT,
-  // })
-  // productStatus: ProductStatus;
+  @Column({ type: 'float', nullable: true })
+  salePrice: number;
 
+  @OneToMany(() => ProductColor, (color) => color.product, {
+    cascade: true,
+  })
+  colors: ProductColor[];
+
+  @OneToOne(() => Product3DModel, (model) => model.product, {
+    cascade: true,
+  })
+  model: Product3DModel;
 
 
   // @Column({ nullable: true })
@@ -89,12 +102,6 @@ export class Product {
 
   // @Column({ nullable: true })
   // productInsurance?: string;
-
-  // @Column({ nullable: true })
-  // productBrand?: string;
-
-  // @Column({ type: 'float', nullable: true })
-  // strikethroughPrice?: number;
 
   // @Column({ type: 'boolean', default: false })
   // chargeTax: boolean;

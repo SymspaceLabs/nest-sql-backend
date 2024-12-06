@@ -20,6 +20,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { MinioService } from './minio/minio.service';
 import { UploadController } from './upload/upload.controller';
+import { ProductColorsModule } from './product-colors/product-colors.module';
+import { Product3dModelsModule } from './product-3d-models/product-3d-models.module';
 
 @Module({
   imports: [
@@ -56,6 +58,8 @@ import { UploadController } from './upload/upload.controller';
     StockModule,
     ProductImagesModule,
     RedisModule,
+    ProductColorsModule,
+    Product3dModelsModule,
   ],
   controllers: [AppController, UploadController],
   providers: [AppService, MinioService],

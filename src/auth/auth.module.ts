@@ -10,8 +10,6 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtGuard } from './jwt-auth.guard';
-import { GitHubStrategy } from './github.strategy';
-import { AppleStrategy } from './apple.strategy';
 import { MailchimpModule } from '../mailchimp/mailchimp.module';
 import { UsersModule } from '../users/users.module';
 import { HttpModule, HttpService } from '@nestjs/axios'; // Import the UsersModule
@@ -44,8 +42,6 @@ import { RedisModule } from '../redis/redis.module';
     AuthService,
     JwtStrategy,
     JwtGuard,
-    GitHubStrategy,
-    AppleStrategy,
   ],
   exports: [AuthService, JwtStrategy, PassportModule, RedisModule],
 })

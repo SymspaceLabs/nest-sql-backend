@@ -11,12 +11,12 @@ import { ProductVariantEntity } from '../product-variant/entities/product-varian
 import { ProductVariantPropertyEntity } from '../product-variant-property/entities/product-variant-property.entity';
 import { PriceEntity } from '../price/entities/price.entity';
 import { Company } from 'src/companies/entities/company.entity';
+import { ProductColor } from 'src/product-colors/entities/product-color.entity';
+import { Product3DModel } from 'src/product-3d-models/entities/product-3d-model.entity';
 
 @Injectable()
 export class ProductsService {
-  private products = [];
   companyRepository: any;
-  // private productImages = [];
   // private productVariantEntity = [];
 
   constructor(
@@ -29,11 +29,10 @@ export class ProductsService {
     // private productVariantPropertyEntityRepository: Repository<ProductVariantPropertyEntity>,
     // @InjectRepository(PriceEntity)
     // private priceEntityRepository: Repository<PriceEntity>,
-    // private readonly minioService: MinioService,
   ) {}
 
     async create(createProductDto: CreateProductDto): Promise<Product> {
-      const { images, company, name, ...productData } = createProductDto;
+      const { images, company, name, colors, model, ...productData } = createProductDto;
     
       if (!Array.isArray(images)) {
         throw new TypeError('images must be an array');
@@ -61,7 +60,7 @@ export class ProductsService {
         slug,
       });
     
-      // Process images only if they are present
+      // Process images
       if (images && images.length) {
         product.images = images.map((imageUrl) => {
           const productImage = new ProductImage();
@@ -69,24 +68,40 @@ export class ProductsService {
           return productImage;
         });
       }
+
+      // Process colors
+      if (colors && colors.length) {
+        product.colors = colors.map((color) => {
+          const productColor = new ProductColor();
+          productColor.name = color.name;
+          productColor.code = color.code;
+          return productColor;
+        });
+      }
+
+      // Process 3D model
+      if (model) {
+        const productModel = new Product3DModel();
+        productModel.name = model.name;
+        productModel.filePath = model.filePath;
+        productModel.format = model.format;
+        product.model = productModel;
+      }
     
       return await this.productRepository.save(product);
     }
-  
-    
 
-    // New method for fetching all products
     async findAll(): Promise<Product[]> {
       return await this.productRepository.find({
-        relations: ['company','images'],
+        relations: ['company','images','colors'],
       });
     }
 
-    // Method to fetch a product by its slug with company data
+
     async findBySlug(slug: string): Promise<Product> {
       const product = await this.productRepository.findOne({
         where: { slug },
-        relations: ['company','images'],  // Include the company data in the query
+        relations: ['company','images','colors'],
       });
 
       if (!product) {

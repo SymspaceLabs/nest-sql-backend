@@ -7,8 +7,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-// import { File } from 'multer';
-// import { Request } from 'express';
+import { CreateProductColorDto } from 'src/product-colors/dto/create-product-color.dto';
 
 class CreateProductVariantPropertyDto {
   @IsString()
@@ -58,6 +57,16 @@ export class CreateProductDto {
   @IsOptional()
   @IsString({ each: true })
   images?: string[];
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateProductColorDto)
+  @IsOptional()
+  colors?: CreateProductColorDto[];
+
+  @IsOptional()
+  model?: { name: string; filePath: string; format?: string };
+
 
   // @IsString()
   // @IsNotEmpty()
