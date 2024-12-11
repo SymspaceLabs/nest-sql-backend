@@ -67,6 +67,14 @@ export class CreateProductDto {
   @IsOptional()
   model?: { name: string; filePath: string; format?: string };
 
+  @IsString()
+  @IsOptional()
+  composition?: string;
+
+  @IsString()
+  @IsOptional()
+  sizeFit?: string;
+
 
   // @IsString()
   // @IsNotEmpty()

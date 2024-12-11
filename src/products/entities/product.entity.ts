@@ -68,6 +68,12 @@ export class Product {
   })
   model: Product3DModel;
 
+  @Column()
+  composition: string;
+
+  @Column({ type: 'text', nullable: true }) // Use 'text' instead of 'varchar'
+  sizeFit: string;
+
 
   // @Column({ nullable: true })
   // threeDModel?: string;
@@ -87,9 +93,6 @@ export class Product {
 
   // @Column({ nullable: true })
   // productSizes: string;
-
-  // @Column({ nullable: true })
-  // productColors: string;
 
   // @Column({ nullable: true })
   // productMaterial: string;
@@ -119,6 +122,7 @@ export class Product {
   //   cascade: true,
   // })
   // stocks: Stock[];
+
   // @Column()
   // createdAt: Date;
 
