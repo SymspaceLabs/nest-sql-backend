@@ -75,6 +75,10 @@ export class CreateProductDto {
   @IsOptional()
   sizeFit?: string;
 
+  @IsArray()
+  @IsOptional()
+  sizes?: string[];
+
 
   // @IsString()
   // @IsNotEmpty()
@@ -87,10 +91,6 @@ export class CreateProductDto {
   // @IsString()
   // @IsOptional()
   // model3D?: string;
-
-  // @IsArray()
-  // @IsOptional()
-  // size?: string[];
 
   // @IsString()
   // @IsOptional()

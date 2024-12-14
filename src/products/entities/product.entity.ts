@@ -5,6 +5,7 @@ import { ProductVariantEntity } from '../../product-variant/entities/product-var
 import { Company } from 'src/companies/entities/company.entity';
 import { ProductColor } from 'src/product-colors/entities/product-color.entity';
 import { Product3DModel } from 'src/product-3d-models/entities/product-3d-model.entity';
+import { ProductSize } from 'src/product-sizes/entities/product-size.entity';
 
 
 export enum ProductStatus {
@@ -71,8 +72,13 @@ export class Product {
   @Column()
   composition: string;
 
-  @Column({ type: 'text', nullable: true }) // Use 'text' instead of 'varchar'
+  @Column({ type: 'text', nullable: true })
   sizeFit: string;
+
+  @OneToMany(() => ProductSize, (productSize) => productSize.product, {
+    cascade: true,
+  })
+  sizes: ProductSize[];
 
 
   // @Column({ nullable: true })

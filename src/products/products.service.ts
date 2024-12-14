@@ -13,6 +13,7 @@ import { PriceEntity } from '../price/entities/price.entity';
 import { Company } from 'src/companies/entities/company.entity';
 import { ProductColor } from 'src/product-colors/entities/product-color.entity';
 import { Product3DModel } from 'src/product-3d-models/entities/product-3d-model.entity';
+import { ProductSize } from 'src/product-sizes/entities/product-size.entity';
 
 @Injectable()
 export class ProductsService {
@@ -32,7 +33,7 @@ export class ProductsService {
   ) {}
 
     async create(createProductDto: CreateProductDto): Promise<Product> {
-      const { images, company, name, colors, model, ...productData } = createProductDto;
+      const { images, company, name, colors, model, sizes, ...productData } = createProductDto;
     
       if (!Array.isArray(images)) {
         throw new TypeError('images must be an array');
@@ -87,13 +88,22 @@ export class ProductsService {
         productModel.format = model.format;
         product.model = productModel;
       }
+
+      // Process sizes
+      if (sizes && sizes.length) {
+        product.sizes = sizes.map((size) => {
+          const productSize = new ProductSize();
+          productSize.size = size;
+          return productSize;
+        });
+      }
     
       return await this.productRepository.save(product);
     }
 
     async findAll(): Promise<Product[]> {
       return await this.productRepository.find({
-        relations: ['company','images','colors'],
+        relations: ['company', 'images', 'colors', 'sizes'],
       });
     }
 
@@ -101,7 +111,7 @@ export class ProductsService {
     async findBySlug(slug: string): Promise<Product> {
       const product = await this.productRepository.findOne({
         where: { slug },
-        relations: ['company','images','colors'],
+        relations: ['company', 'images', 'colors', 'sizes'],
       });
 
       if (!product) {
@@ -286,7 +296,7 @@ export class ProductsService {
     }
   
     // Omit `company` and `images` from `updateProductDto` to prevent type conflicts
-    const { company, images, ...otherUpdates } = updateProductDto;
+    const { company, images, sizes, ...otherUpdates } = updateProductDto;
   
     // Merge the remaining updates (excluding images and company)
     const updatedProduct = this.productRepository.merge(product, otherUpdates);
