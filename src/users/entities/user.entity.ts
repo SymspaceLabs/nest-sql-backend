@@ -1,5 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
+import { Measurement } from 'src/measurements/entities/measurement.entity';
 
 export enum AuthMethod {
   EMAIL = 'email',
@@ -49,6 +50,16 @@ export class User {
     default: AuthMethod.EMAIL,
   })
   authMethod: AuthMethod;
+
+  @Column({ type: 'date', nullable: true, default: null })
+  dob?: Date;
+
+  @OneToOne(() => Measurement, (measurement) => measurement.user, { cascade: true })
+  measurement: Measurement;
+
+  @Column({ default: false })
+  isOnboardingFormFilled: boolean;
+  
 }
 
 export default User;

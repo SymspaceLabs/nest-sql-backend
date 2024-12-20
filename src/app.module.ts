@@ -23,6 +23,8 @@ import { UploadController } from './upload/upload.controller';
 import { ProductColorsModule } from './product-colors/product-colors.module';
 import { Product3dModelsModule } from './product-3d-models/product-3d-models.module';
 import { ProductSizesModule } from './product-sizes/product-sizes.module';
+import { MeasurementsModule } from './measurements/measurements.module';
+import { OnboardingModule } from './onboarding/onboarding.module';
 
 @Module({
   imports: [
@@ -62,6 +64,8 @@ import { ProductSizesModule } from './product-sizes/product-sizes.module';
     ProductColorsModule,
     Product3dModelsModule,
     ProductSizesModule,
+    MeasurementsModule,
+    OnboardingModule,
   ],
   controllers: [AppController, UploadController],
   providers: [AppService, MinioService],

@@ -280,6 +280,7 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
+        isOnboardingFormFilled: user.isOnboardingFormFilled,
       },
     };
   }
@@ -290,24 +291,34 @@ export class AuthService {
 
     const { email } = googleUser;
 
+    
+
     let user = await this.usersRepository.findOne({
       where: { email },
     });
 
-    if (!user) {
-      user = this.usersRepository.create({
-          email: googleUser.email,
-          firstName: googleUser.firstName || '',
-          lastName: googleUser.lastName || '',
-          avatar: googleUser.picture || '',
-          isVerified: true,
-          role: 'buyer',
-          password: '',
-          authMethod: AuthMethod.GOOGLE,
-      });
-
-      await this.usersRepository.save(user);
+    try {
+      if (!user) {
+        user = this.usersRepository.create({
+            email: googleUser.email,
+            firstName: googleUser.firstName || '',
+            lastName: googleUser.lastName || '',
+            avatar: googleUser.picture || '',
+            isVerified: true,
+            role: 'buyer',
+            password: '',
+            authMethod: AuthMethod.GOOGLE,
+  
+        });
+  
+        await this.usersRepository.save(user);  
+      }
+    } catch (error) {
+      console.error('Error saving user:', error.message);
+      throw new Error('Failed to create user. Please check your data and try again.');
     }
+
+
 
     const accessToken = this.jwtService.sign(
       { userId: user.id, email: user.email },
@@ -330,6 +341,7 @@ export class AuthService {
         lastName: user.lastName,
         role: user.role,
         avatar: user.avatar,
+        isOnboardingFormFilled: user.isOnboardingFormFilled,
       },
     };
   }
@@ -392,6 +404,7 @@ export class AuthService {
             lastName: user.lastName,
             role: user.role,
             avatar: user.avatar,
+            isOnboardingFormFilled: user.isOnboardingFormFilled,
           },
         };
 
@@ -453,6 +466,7 @@ export class AuthService {
           lastName: user.lastName,
           role: user.role,
           avatar: user.avatar,
+          isOnboardingFormFilled: user.isOnboardingFormFilled,
         },
       };
     } catch (error) {
@@ -463,8 +477,6 @@ export class AuthService {
     }
   }
   
-  
-
   async verifyEmail(token: string): Promise<boolean> {
     try {
       const { email } = this.jwtService.verify(token);

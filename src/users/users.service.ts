@@ -31,6 +31,7 @@ export class UsersService {
       where: {
         id: id,
       },
+      relations: ['measurement'],
     });
     if (user) {
       return user;
@@ -119,31 +120,28 @@ export class UsersService {
   }
 
   async editUser(userId: string, updates: Partial<User>): Promise<{ user: User; message: string }> {
-  // Find the user by ID
-  const user = await this.usersRepository.findOne({
-    where: { id: userId },
-  });
+    // Find the user by ID
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+    });
 
-  if (!user) {
-    throw new NotFoundException('User not found');
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Apply the updates to the user entity
+    Object.assign(user, updates);
+
+    // Validate and save the updated user
+    try {
+      const updatedUser = await this.usersRepository.save(user);
+      return {
+        user: updatedUser,
+        message: 'User information updated successfully',
+      };
+    } catch (error) {
+      throw new BadRequestException('Failed to update user information');
+    }
   }
-
-  // Apply the updates to the user entity
-  Object.assign(user, updates);
-
-  // Validate and save the updated user
-  try {
-    const updatedUser = await this.usersRepository.save(user);
-    return {
-      user: updatedUser,
-      message: 'User information updated successfully',
-    };
-  } catch (error) {
-    throw new BadRequestException('Failed to update user information');
-  }
-}
-
-  
-
 
 }
